@@ -1,0 +1,362 @@
+  error - Target of URI doesn't exist: '../data/models/models.dart' - lib\presentation\providers\providers.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../data/repositories/repositories.dart' - lib\presentation\providers\providers.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../core/constants/app_constants.dart' - lib\presentation\providers\providers.dart:7:8 - uri_does_not_exist
+  error - The name 'ReportRepository' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:11:43 - non_type_as_type_argument
+  error - The function 'ReportRepository' isn't defined - lib\presentation\providers\providers.dart:12:10 - undefined_function
+  error - The name 'AlertRepository' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:15:42 - non_type_as_type_argument
+  error - The function 'AlertRepository' isn't defined - lib\presentation\providers\providers.dart:16:10 - undefined_function
+  error - The name 'AuthRepository' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:19:41 - non_type_as_type_argument
+  error - The function 'AuthRepository' isn't defined - lib\presentation\providers\providers.dart:20:10 - undefined_function
+  error - The name 'AshaWorker' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:25:42 - non_type_as_type_argument
+  error - Undefined class 'AuthRepository' - lib\presentation\providers\providers.dart:26:9 - undefined_class
+  error - Undefined name 'AppConstants' - lib\presentation\providers\providers.dart:34:39 - undefined_identifier
+  error - Undefined name 'AshaWorker' - lib\presentation\providers\providers.dart:37:17 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\providers\providers.dart:49:11 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\providers\providers.dart:57:25 - undefined_identifier
+  error - The name 'AshaWorker' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:66:41 - non_type_as_type_argument
+  error - The name 'AshaWorker' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:74:40 - non_type_as_type_argument
+  error - The name 'AshaReport' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:80:51 - non_type_as_type_argument
+  error - The name 'AshaReport' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:86:48 - non_type_as_type_argument
+  error - The name 'AshaReport' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:92:52 - non_type_as_type_argument
+  error - The name 'AlertModel' isn't a type, so it can't be used as a type argument - lib\presentation\providers\providers.dart:102:44 - non_type_as_type_argument
+  error - Undefined class 'ReportRepository' - lib\presentation\providers\providers.dart:115:9 - undefined_class
+  error - Undefined name 'AppConstants' - lib\presentation\providers\providers.dart:121:33 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\providers\providers.dart:142:11 - undefined_identifier
+  error - Undefined class 'SyndromicData' - lib\presentation\providers\providers.dart:165:9 - undefined_class
+  error - Undefined class 'MaternalHealthData' - lib\presentation\providers\providers.dart:166:9 - undefined_class
+  error - Undefined class 'ChildHealthData' - lib\presentation\providers\providers.dart:167:9 - undefined_class
+  error - Undefined class 'EnvironmentalData' - lib\presentation\providers\providers.dart:168:9 - undefined_class
+  error - Undefined class 'GeoLocation' - lib\presentation\providers\providers.dart:169:9 - undefined_class
+  error - The name 'SyndromicData' isn't a class - lib\presentation\providers\providers.dart:176:28 - creation_with_non_type
+  error - The name 'MaternalHealthData' isn't a class - lib\presentation\providers\providers.dart:177:27 - creation_with_non_type
+  error - The name 'ChildHealthData' isn't a class - lib\presentation\providers\providers.dart:178:24 - creation_with_non_type
+  error - The name 'EnvironmentalData' isn't a class - lib\presentation\providers\providers.dart:179:32 - creation_with_non_type
+  error - Undefined class 'SyndromicData' - lib\presentation\providers\providers.dart:188:5 - undefined_class
+  error - Undefined class 'MaternalHealthData' - lib\presentation\providers\providers.dart:189:5 - undefined_class
+  error - Undefined class 'ChildHealthData' - lib\presentation\providers\providers.dart:190:5 - undefined_class
+  error - Undefined class 'EnvironmentalData' - lib\presentation\providers\providers.dart:191:5 - undefined_class
+  error - Undefined class 'GeoLocation' - lib\presentation\providers\providers.dart:192:5 - undefined_class
+  error - Undefined class 'ReportRepository' - lib\presentation\providers\providers.dart:212:9 - undefined_class
+  error - Undefined class 'AshaWorker' - lib\presentation\providers\providers.dart:213:9 - undefined_class
+  error - Undefined class 'SyndromicData' - lib\presentation\providers\providers.dart:234:24 - undefined_class
+  error - Undefined class 'MaternalHealthData' - lib\presentation\providers\providers.dart:236:23 - undefined_class
+  error - Undefined class 'ChildHealthData' - lib\presentation\providers\providers.dart:238:20 - undefined_class
+  error - Undefined class 'EnvironmentalData' - lib\presentation\providers\providers.dart:240:28 - undefined_class
+  error - Undefined class 'GeoLocation' - lib\presentation\providers\providers.dart:242:23 - undefined_class
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\alerts\alerts_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\alerts\alerts_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../data/models/models.dart' - lib\presentation\screens\alerts\alerts_screen.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'alertsProvider' - lib\presentation\screens\alerts\alerts_screen.dart:34:35 - undefined_identifier
+  error - Undefined name 'alertRepositoryProvider' - lib\presentation\screens\alerts\alerts_screen.dart:42:30 - undefined_identifier
+  error - Undefined name 'alertsProvider' - lib\presentation\screens\alerts\alerts_screen.dart:43:30 - undefined_identifier
+  error - Undefined name 'unreadCountProvider' - lib\presentation\screens\alerts\alerts_screen.dart:44:30 - undefined_identifier
+  error - The name 'AlertModel' isn't a type, so it can't be used as a type argument - lib\presentation\screens\alerts\alerts_screen.dart:98:14 - non_type_as_type_argument
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:115:24 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:115:24 - undefined_identifier
+  error - Undefined name 'alertRepositoryProvider' - lib\presentation\screens\alerts\alerts_screen.dart:133:23 - undefined_identifier
+  error - Undefined name 'alertsProvider' - lib\presentation\screens\alerts\alerts_screen.dart:135:28 - undefined_identifier
+  error - Undefined name 'unreadCountProvider' - lib\presentation\screens\alerts\alerts_screen.dart:136:28 - undefined_identifier
+  error - Undefined class 'AlertModel' - lib\presentation\screens\alerts\alerts_screen.dart:144:47 - undefined_class
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:214:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:214:32 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:227:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:227:26 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:236:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:236:26 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:245:40 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:245:40 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:252:30 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:252:30 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:263:42 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:263:42 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:269:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:269:32 - undefined_identifier
+  error - Undefined class 'AlertModel' - lib\presentation\screens\alerts\alerts_screen.dart:291:9 - undefined_class
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:392:32 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:403:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:403:32 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\alerts\alerts_screen.dart:413:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\alerts\alerts_screen.dart:413:32 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\dashboard\dashboard_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\presentation\screens\dashboard\dashboard_screen.dart:7:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\dashboard\dashboard_screen.dart:8:8 - uri_does_not_exist
+  error - Undefined name 'currentWorkerProvider' - lib\presentation\screens\dashboard\dashboard_screen.dart:22:30 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:25:20 - undefined_identifier
+  error - Undefined name 'todaysReportsProvider' - lib\presentation\screens\dashboard\dashboard_screen.dart:30:34 - undefined_identifier
+  error - Undefined name 'pendingCountProvider' - lib\presentation\screens\dashboard\dashboard_screen.dart:31:36 - undefined_identifier
+  error - Undefined name 'unreadCountProvider' - lib\presentation\screens\dashboard\dashboard_screen.dart:32:35 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:54:43 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:55:32 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:83:22 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:87:22 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:91:22 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:95:22 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:154:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:157:57 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:157:57 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:201:53 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:262:49 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:266:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:266:32 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:321:20 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:331:19 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:332:19 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:342:19 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:343:19 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:388:24 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:388:24 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:407:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:413:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:419:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:425:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:431:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\dashboard\dashboard_screen.dart:437:16 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:510:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:510:26 - undefined_identifier
+  error - Undefined name 'allReportsProvider' - lib\presentation\screens\dashboard\dashboard_screen.dart:525:36 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:552:30 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:552:30 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:594:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\dashboard\dashboard_screen.dart:613:20 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:613:20 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:621:19 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:623:23 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:624:23 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:633:21 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:635:25 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\dashboard\dashboard_screen.dart:636:25 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\login\login_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\presentation\screens\login\login_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\login\login_screen.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'authNotifierProvider' - lib\presentation\screens\login\login_screen.dart:57:36 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\login\login_screen.dart:65:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:77:51 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:77:51 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:145:38 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:145:38 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:154:38 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:169:52 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:169:52 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:187:52 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:187:52 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:193:42 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:209:40 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:212:44 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:218:46 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:218:46 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:224:48 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:224:48 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:264:38 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:273:48 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:273:48 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:279:48 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:279:48 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\login\login_screen.dart:330:20 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:330:20 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:345:30 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\login\login_screen.dart:351:47 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\report\report_history_screen.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\report\report_history_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../data/models/models.dart' - lib\presentation\screens\report\report_history_screen.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'allReportsProvider' - lib\presentation\screens\report\report_history_screen.dart:13:36 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_history_screen.dart:34:30 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:34:30 - undefined_identifier
+  error - Undefined class 'AshaReport' - lib\presentation\screens\report\report_history_screen.dart:58:9 - undefined_class
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:68:11 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:70:15 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:71:15 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:82:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_history_screen.dart:103:24 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:103:24 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_history_screen.dart:179:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:179:22 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:188:34 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:188:54 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_history_screen.dart:215:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:215:22 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_history_screen.dart:224:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_history_screen.dart:224:22 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\report\report_wizard_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\presentation\screens\report\report_wizard_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\report\report_wizard_screen.dart:7:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../data/models/models.dart' - lib\presentation\screens\report\report_wizard_screen.dart:8:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\report_wizard_screen.dart:32:28 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\report_wizard_screen.dart:34:16 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\report_wizard_screen.dart:43:28 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\report_wizard_screen.dart:45:16 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\report\report_wizard_screen.dart:51:18 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\report_wizard_screen.dart:57:35 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_wizard_screen.dart:69:24 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_wizard_screen.dart:97:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\report_wizard_screen.dart:123:46 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_wizard_screen.dart:123:46 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\report_wizard_screen.dart:130:47 - undefined_identifier
+  error - Target of URI doesn't exist: '../../../core/theme/app_theme.dart' - lib\presentation\screens\report\steps\step1_syndromic.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../providers/providers.dart' - lib\presentation\screens\report\steps\step1_syndromic.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../../data/models/models.dart' - lib\presentation\screens\report\steps\step1_syndromic.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step1_syndromic.dart:13:33 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step1_syndromic.dart:14:31 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:96:16 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:98:35 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step1_syndromic.dart:113:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:113:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step1_syndromic.dart:122:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:122:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step1_syndromic.dart:166:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:166:26 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step1_syndromic.dart:202:48 - undefined_identifier
+  error - Target of URI doesn't exist: '../../../core/theme/app_theme.dart' - lib\presentation\screens\report\steps\step2_maternal_child.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../providers/providers.dart' - lib\presentation\screens\report\steps\step2_maternal_child.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../../data/models/models.dart' - lib\presentation\screens\report\steps\step2_maternal_child.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step2_maternal_child.dart:13:35 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step2_maternal_child.dart:16:31 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step2_maternal_child.dart:158:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step2_maternal_child.dart:158:26 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step2_maternal_child.dart:187:54 - undefined_identifier
+  error - Target of URI doesn't exist: '../../../core/theme/app_theme.dart' - lib\presentation\screens\report\steps\step3_environmental.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../providers/providers.dart' - lib\presentation\screens\report\steps\step3_environmental.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../../data/models/models.dart' - lib\presentation\screens\report\steps\step3_environmental.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step3_environmental.dart:13:27 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step3_environmental.dart:14:31 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step3_environmental.dart:50:34 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:50:34 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:110:23 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:112:27 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:113:27 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:117:25 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:119:29 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:120:29 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:130:27 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:132:31 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:133:31 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:141:29 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:143:33 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:144:33 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step3_environmental.dart:161:62 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:161:62 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:228:46 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step3_environmental.dart:237:30 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step3_environmental.dart:237:30 - undefined_identifier
+  error - Target of URI doesn't exist: '../../../core/theme/app_theme.dart' - lib\presentation\screens\report\steps\step4_location.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../providers/providers.dart' - lib\presentation\screens\report\steps\step4_location.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../../data/models/models.dart' - lib\presentation\screens\report\steps\step4_location.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step4_location.dart:54:16 - undefined_identifier
+  error - The method 'GeoLocation' isn't defined for the type '_Step4LocationViewState' - lib\presentation\screens\report\steps\step4_location.dart:55:13 - undefined_method
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step4_location.dart:75:14 - undefined_identifier
+  error - The name 'GeoLocation' isn't a class - lib\presentation\screens\report\steps\step4_location.dart:76:17 - creation_with_non_type
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step4_location.dart:87:32 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:125:34 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:125:34 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:142:24 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:145:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:153:34 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:153:34 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:160:34 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:160:34 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:194:24 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:197:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:202:30 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:202:30 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:209:32 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:209:32 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:311:37 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:318:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:318:22 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step4_location.dart:328:20 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step4_location.dart:328:20 - undefined_identifier
+  error - Target of URI doesn't exist: '../../../core/theme/app_theme.dart' - lib\presentation\screens\report\steps\step5_review.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../../core/constants/app_constants.dart' - lib\presentation\screens\report\steps\step5_review.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../providers/providers.dart' - lib\presentation\screens\report\steps\step5_review.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step5_review.dart:14:35 - undefined_identifier
+  error - Undefined name 'reportWizardProvider' - lib\presentation\screens\report\steps\step5_review.dart:15:31 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:172:24 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step5_review.dart:178:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:178:28 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:198:46 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\report\steps\step5_review.dart:205:36 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:209:34 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:247:46 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\report\steps\step5_review.dart:254:36 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\report\steps\step5_review.dart:338:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:338:22 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:350:21 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:352:25 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\report\steps\step5_review.dart:353:25 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\settings\settings_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\presentation\screens\settings\settings_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\settings\settings_screen.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'currentWorkerProvider' - lib\presentation\screens\settings\settings_screen.dart:14:30 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\screens\settings\settings_screen.dart:54:37 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\screens\settings\settings_screen.dart:56:22 - undefined_identifier
+  error - Undefined name 'AppConstants' - lib\presentation\screens\settings\settings_screen.dart:56:53 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:69:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:69:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:79:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:79:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:95:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:95:26 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:99:26 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:99:26 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:169:32 - undefined_identifier
+  error - Undefined name 'authNotifierProvider' - lib\presentation\screens\settings\settings_screen.dart:173:30 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\settings\settings_screen.dart:176:28 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:279:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:279:22 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:313:31 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:313:51 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:317:51 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:317:51 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:337:18 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:337:18 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\settings\settings_screen.dart:346:18 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\settings\settings_screen.dart:346:18 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/constants/app_constants.dart' - lib\presentation\screens\splash\splash_screen.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\splash\splash_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\splash\splash_screen.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'currentWorkerProvider' - lib\presentation\screens\splash\splash_screen.dart:59:29 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\splash\splash_screen.dart:61:18 - undefined_identifier
+  error - Undefined name 'AppRoutes' - lib\presentation\screens\splash\splash_screen.dart:63:18 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\splash\splash_screen.dart:79:21 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\splash\splash_screen.dart:79:21 - undefined_identifier
+  error - Target of URI doesn't exist: '../../core/theme/app_theme.dart' - lib\presentation\screens\sync\sync_screen.dart:5:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../providers/providers.dart' - lib\presentation\screens\sync\sync_screen.dart:6:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../data/models/models.dart' - lib\presentation\screens\sync\sync_screen.dart:7:8 - uri_does_not_exist
+  error - Undefined name 'syncNotifierProvider' - lib\presentation\screens\sync\sync_screen.dart:14:33 - undefined_identifier
+  error - Undefined name 'syncNotifierProvider' - lib\presentation\screens\sync\sync_screen.dart:15:35 - undefined_identifier
+  error - Undefined name 'pendingReportsProvider' - lib\presentation\screens\sync\sync_screen.dart:16:36 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:40:41 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:43:36 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:51:32 - undefined_identifier
+  error - Undefined class 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:92:9 - undefined_class
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:99:7 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:100:16 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:105:7 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:106:16 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:111:7 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:112:16 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:117:7 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:118:16 - undefined_identifier
+  error - Undefined name 'SyncState' - lib\presentation\screens\sync\sync_screen.dart:150:33 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:182:28 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:182:28 - undefined_identifier
+  error - Undefined class 'SyncNotifier' - lib\presentation\screens\sync\sync_screen.dart:196:9 - undefined_class
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:206:51 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:206:51 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:221:35 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:221:55 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:237:16 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:240:31 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:251:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:251:22 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:260:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:260:22 - undefined_identifier
+  error - Undefined class 'AshaReport' - lib\presentation\screens\sync\sync_screen.dart:271:9 - undefined_class
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:286:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:291:24 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:291:24 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:305:24 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:305:24 - undefined_identifier
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:311:20 - undefined_identifier
+  error - Invalid constant value - lib\presentation\screens\sync\sync_screen.dart:319:22 - invalid_constant
+  error - Undefined name 'AppColors' - lib\presentation\screens\sync\sync_screen.dart:319:22 - undefined_identifier
+  error - The name 'MyApp' isn't a class - test\widget_test.dart:16:35 - creation_with_non_type

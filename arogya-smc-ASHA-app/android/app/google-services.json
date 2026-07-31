@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "827350385700",
+    "project_id": "arogya-smc-auth",
+    "storage_bucket": "arogya-smc-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:827350385700:android:d98961d56093fa64c644b1",
+        "android_client_info": {
+          "package_name": "com.example.asha_worker_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBNjdW_9fmCkaRRfGteG3CVr3v-ZgYUr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

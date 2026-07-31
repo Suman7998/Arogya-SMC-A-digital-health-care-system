@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "220492174924",
+    "project_id": "arogya-smc",
+    "storage_bucket": "arogya-smc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:220492174924:android:660cb84153b0bcc8a7c6e9",
+        "android_client_info": {
+          "package_name": "com.beastinnovators.flutter_projects"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPLRzp__S437xNhoO5wpakBX3O4FTX4eY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

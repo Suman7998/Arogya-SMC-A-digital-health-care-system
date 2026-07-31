@@ -1,0 +1,3279 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/*.lock, .next/**, node_modules/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+add_client_ids.sql
+app/api/advisories/route.ts
+app/api/asha/reports/route.ts
+app/api/beneficiaries/[id]/route.ts
+app/api/beneficiaries/children/route.ts
+app/api/beneficiaries/route.ts
+app/api/facilities/nearby/route.ts
+app/api/facilities/route.ts
+app/api/family-members/route.ts
+app/api/growth-measurements/route.ts
+app/api/health/route.ts
+app/api/public/advisories/route.ts
+app/api/public/alerts/route.ts
+app/api/public/facilities/route.ts
+app/api/public/wards/route.ts
+app/api/reports/route.ts
+app/api/sync/route.ts
+app/api/vaccinations/route.ts
+app/api/visits/route.ts
+app/api/wards/detect/route.ts
+app/api/wards/route.ts
+eslint.config.mjs
+facilities_geom.sql
+FIXES-TODO.md
+FIXES-TODO.pdf
+middleware.ts
+migrate_geom.mjs
+migrate.mjs
+next.config.ts
+package.json
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+refactor.mjs
+src/app/favicon.ico
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.module.css
+src/app/page.tsx
+src/app/schema.md
+src/app/schema.pdf
+src/lib/db.ts
+src/lib/firebase-admin.ts
+TODO.md
+TODO.pdf
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="add_client_ids.sql">
+ALTER TABLE beneficiaries ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE children ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE visits ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE asha_reports ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE family_members ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE vaccinations ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+ALTER TABLE growth_measurements ADD COLUMN IF NOT EXISTS client_id VARCHAR(36) UNIQUE;
+</file>
+
+<file path="app/api/advisories/route.ts">
+// app/api/advisories/route.ts
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET() {
+  try {
+    const result = await query(`
+      SELECT id, title, description, severity, ward_code, published_at
+      FROM advisories
+      WHERE expires_at > NOW() OR expires_at IS NULL
+      ORDER BY published_at DESC
+    `);
+    return NextResponse.json({ success: true, data: result.rows });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch advisories' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/asha/reports/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    const { id, disease_type, ...restData } = data;
+    
+    if (!data.worker_id || !data.ward_code || !data.report_date) {
+      return NextResponse.json({ success: false, error: 'Missing mandatory fields' }, { status: 400 });
+    }
+
+    const result = await query(`
+      INSERT INTO asha_reports (
+        worker_id, worker_name, ward_code, report_date,
+        fever_count, cough_count, diarrhea_count, jaundice_count, rash_count,
+        pregnant_women_count, high_risk_pregnancy_count, anc_visits_conducted,
+        children_under_5_count, malnourished_children,
+        stagnant_water, poor_sanitation, garbage_dumping, mosquito_breeding,
+        location_lat, location_lng, disease_type, sync_status, client_id
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'synced', $22
+      ) RETURNING id`, 
+      [
+        data.worker_id, data.worker_name || 'Anonymous', data.ward_code, data.report_date,
+        data.fever_count || 0, data.cough_count || 0, data.diarrhea_count || 0, data.jaundice_count || 0, data.rash_count || 0,
+        data.pregnant_women_count || 0, data.high_risk_pregnancy_count || 0, data.anc_visits_conducted || 0,
+        data.children_under_5_count || 0, data.malnourished_children || 0,
+        data.stagnant_water || false, data.poor_sanitation || false, data.garbage_dumping || false, data.mosquito_breeding || false,
+        data.location_lat || 0, data.location_lng || 0, disease_type || null, id || null
+      ]
+    );
+
+    const reportId = result.rows[0].id;
+
+    // 1. Log to Audit Table
+    await query(
+      `INSERT INTO audit_logs (user_id, table_name, record_id, action) 
+       VALUES ($1, 'asha_reports', $2, 'create_report')`,
+      [data.worker_id, reportId]
+    );
+
+    // 2. Outbreak Detection Logic (Alerts Table)
+    if ((data.fever_count || 0) > 5) {
+      await query(
+        `INSERT INTO alerts (type, severity, ward_code, title, description)
+         VALUES ('outbreak', 'high', $1, 'Fever Spike Detected', $2)`,
+        [data.ward_code, `ASHA ${data.worker_name} reported ${data.fever_count} fever cases in ${data.ward_code}. Potential outbreak investigation required.`]
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { report_id: reportId },
+      message: 'Report serialized and stored in PostgreSQL successfully'
+    });
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ success: false, error: 'Database Error: ' + error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/beneficiaries/[id]/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const beneficiaryId = parseInt(params.id);
+    if (isNaN(beneficiaryId)) {
+      return NextResponse.json({ success: false, error: 'Invalid beneficiary ID' }, { status: 400 });
+    }
+
+    const result = await query(`
+      SELECT 
+        b.*,
+        COALESCE(
+          jsonb_agg(
+            jsonb_build_object(
+              'id', fm.id,
+              'name', fm.name,
+              'age', fm.age,
+              'gender', fm.gender,
+              'health_status', fm.health_status,
+              'pregnancy_status', fm.pregnancy_status,
+              'is_child', (c.id IS NOT NULL),
+              'child_details', jsonb_build_object(
+                'id', c.id,
+                'date_of_birth', c.date_of_birth,
+                'blood_group', c.blood_group,
+                'nutrition_status', c.nutrition_status
+              ),
+              'growth_measurements', (
+                SELECT COALESCE(jsonb_agg(
+                  jsonb_build_object(
+                    'id', gm.id,
+                    'measured_at', gm.measured_at,
+                    'weight_kg', gm.weight_kg,
+                    'height_cm', gm.height_cm,
+                    'age_months', gm.age_months,
+                    'nutrition_status', gm.nutrition_status,
+                    'notes', gm.notes
+                  ) ORDER BY gm.measured_at DESC, gm.id DESC
+                ), '[]'::jsonb)
+                FROM growth_measurements gm
+                WHERE gm.child_id = c.id
+              ),
+              'vaccinations', (
+                SELECT COALESCE(jsonb_agg(
+                  jsonb_build_object(
+                    'id', v.id,
+                    'vaccine_name', v.vaccine_name,
+                    'dose_number', v.dose_number,
+                    'date_given', v.date_given,
+                    'next_due_date', v.next_due_date,
+                    'remarks', v.remarks
+                  ) ORDER BY v.date_given DESC, v.id DESC
+                ), '[]'::jsonb)
+                FROM vaccinations v
+                WHERE v.child_id = c.id
+              )
+            ) FILTER (WHERE fm.id IS NOT NULL)
+          ), '[]'::jsonb
+        ) as members
+      FROM beneficiaries b
+      LEFT JOIN family_members fm ON b.id = fm.beneficiary_id
+      LEFT JOIN children c ON fm.id = c.family_member_id
+      WHERE b.id = $1
+      GROUP BY b.id
+    `, [beneficiaryId]);
+
+    if (result.rows.length === 0) {
+      return NextResponse.json({ success: false, error: 'Beneficiary not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error: any) {
+    console.error('Error fetching beneficiary details:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Internal Server Error',
+      details: error.message 
+    }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/beneficiaries/children/route.ts">
+// app/api/beneficiaries/children/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const { id, family_id, name, date_of_birth, gender, blood_group, nutrition_status } = body;
+
+  if (!id || !family_id || !name || !date_of_birth || !gender) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  try {
+    // Resolve family UUID to internal ID
+    const benRes = await query('SELECT id FROM beneficiaries WHERE client_id = $1', [family_id]);
+    const actualFamilyId = benRes.rows.length > 0 ? benRes.rows[0].id : family_id;
+
+    const result = await query(
+      `INSERT INTO children (client_id, family_id, name, date_of_birth, gender, blood_group, nutrition_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (client_id) DO UPDATE SET
+         name = EXCLUDED.name,
+         date_of_birth = EXCLUDED.date_of_birth,
+         gender = EXCLUDED.gender,
+         blood_group = EXCLUDED.blood_group,
+         nutrition_status = EXCLUDED.nutrition_status
+       RETURNING *`,
+      [id, actualFamilyId, name, date_of_birth, gender, blood_group, nutrition_status || 'normal']
+    );
+    return NextResponse.json({ success: true, data: result.rows[0] }, { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/beneficiaries/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+// GET /api/beneficiaries - Fetch all beneficiary families with their last visit date
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const wardCode = searchParams.get('ward_code');
+    
+    let queryStr = `
+      SELECT b.*, 
+             (SELECT MAX(visit_date) FROM visits v WHERE v.beneficiary_id = b.id) as last_visit
+      FROM beneficiaries b 
+    `;
+    const params = [];
+    
+    if (wardCode) {
+      queryStr += `WHERE b.ward_code = $1 `;
+      params.push(wardCode);
+    }
+    
+    queryStr += `ORDER BY b.created_at DESC`;
+    
+    const result = await query(queryStr, params);
+    return NextResponse.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error: any) {
+    console.error('Error fetching beneficiaries:', error);
+    return NextResponse.json({ 
+      success: false,
+      error: 'Internal Server Error', 
+      details: error.message 
+    }, { status: 500 });
+  }
+}
+
+// POST /api/beneficiaries - Add a new family
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const { 
+      id,
+      family_name, 
+      head_name, 
+      ward_code, 
+      address, 
+      contact_number, 
+      total_members, 
+      pregnant_women_count, 
+      children_count, 
+      high_risk_flag 
+    } = data;
+
+    const result = await query(
+      `INSERT INTO beneficiaries (
+        family_name, head_name, ward_code, address, contact_number, 
+        total_members, pregnant_women_count, children_count, high_risk_flag, client_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [
+        family_name, head_name, ward_code, address, contact_number, 
+        total_members || 1, pregnant_women_count || 0, children_count || 0, high_risk_flag || false,
+        id || null
+      ]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating beneficiary:', error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/facilities/nearby/route.ts">
+// app/api/facilities/nearby/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const lat = parseFloat(searchParams.get('lat') || '0');
+  const lng = parseFloat(searchParams.get('lng') || '0');
+  const radius = parseFloat(searchParams.get('radius') || '5000'); // meters
+
+  if (isNaN(lat) || isNaN(lng)) {
+    return NextResponse.json({ error: 'Invalid coordinates' }, { status: 400 });
+  }
+
+  try {
+    const result = await query(`
+      SELECT id, name, facility_type, address, contact_number,
+             ST_Distance(geom, ST_SetSRID(ST_MakePoint($2, $1), 4326)) AS distance
+      FROM facilities
+      WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint($2, $1), 4326), $3)
+      ORDER BY distance
+      LIMIT 20
+    `, [lat, lng, radius]);
+
+    return NextResponse.json({ success: true, data: result.rows });
+  } catch (error) {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/facilities/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+// GET /api/facilities - Fetch all nearby healthcare facilities
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const ward = searchParams.get('ward');
+
+    let result;
+    if (ward) {
+      result = await query(
+        'SELECT * FROM facilities WHERE ward_code = $1 ORDER BY name ASC',
+        [ward]
+      );
+    } else {
+      result = await query('SELECT * FROM facilities ORDER BY name ASC');
+    }
+
+    return NextResponse.json(result.rows);
+  } catch (error: any) {
+    console.error('Error fetching facilities:', error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/family-members/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import pool from '@/lib/db';
+
+export async function POST(request: NextRequest) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    const data = await request.json();
+    const {
+      beneficiary_id,
+      name,
+      age,
+      gender,
+      health_status,
+      pregnancy_status,
+      is_child,
+      date_of_birth,
+      blood_group,
+      nutrition_status
+    } = data;
+
+    // Validation
+    if (!beneficiary_id || !name || age === undefined || age < 0) {
+      return NextResponse.json({ success: false, error: 'Missing or invalid required fields' }, { status: 400 });
+    }
+    if (gender && !['Male', 'Female', 'Other'].includes(gender)) {
+      return NextResponse.json({ success: false, error: 'Invalid gender' }, { status: 400 });
+    }
+    if (is_child && (!date_of_birth || new Date(date_of_birth) > new Date())) {
+      return NextResponse.json({ success: false, error: 'Invalid date of birth for child' }, { status: 400 });
+    }
+
+    // Insert family member
+    const memberResult = await client.query(
+      `INSERT INTO family_members (
+        beneficiary_id, name, age, gender, health_status, pregnancy_status
+      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [beneficiary_id, name, age, gender, health_status || 'Normal', pregnancy_status || 'No']
+    );
+    const memberId = memberResult.rows[0].id;
+
+    let childId = null;
+    if (is_child) {
+      const childResult = await client.query(
+        `INSERT INTO children (
+          beneficiary_id, family_member_id, name, date_of_birth, gender, blood_group, nutrition_status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [beneficiary_id, memberId, name, date_of_birth, gender, blood_group || null, nutrition_status || 'Normal']
+      );
+      childId = childResult.rows[0].id;
+    }
+
+    // Update total members
+    await client.query(
+      'UPDATE beneficiaries SET total_members = total_members + 1 WHERE id = $1',
+      [beneficiary_id]
+    );
+
+    await client.query('COMMIT');
+
+    return NextResponse.json({
+      success: true,
+      data: { 
+        member_id: memberId, 
+        child_id: childId,
+        message: 'Member added successfully'
+      }
+    }, { status: 201 });
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Error adding family member:', error);
+    return NextResponse.json({ success: false, error: 'Database error: ' + error.message }, { status: 500 });
+  } finally {
+    client.release();
+  }
+}
+</file>
+
+<file path="app/api/growth-measurements/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const childId = searchParams.get('child_id');
+
+    if (!childId) {
+      return NextResponse.json({ success: false, error: 'child_id is required' }, { status: 400 });
+    }
+
+    const result = await query(
+      `SELECT * FROM growth_measurements 
+       WHERE child_id = $1 
+       ORDER BY measured_at DESC, id DESC`,
+      [childId]
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    const { 
+      id,
+      child_id,
+      measured_at,
+      weight_kg,
+      height_cm,
+      age_months,
+      nutrition_status,
+      notes
+    } = data;
+
+    if (!child_id || weight_kg === undefined || weight_kg <= 0 || height_cm === undefined || height_cm <= 0) {
+      return NextResponse.json({ success: false, error: 'Invalid input data' }, { status: 400 });
+    }
+
+    const childRes = await query('SELECT id FROM children WHERE client_id = $1', [child_id]);
+    const actualChildId = childRes.rows.length > 0 ? childRes.rows[0].id : child_id;
+
+    const result = await query(
+      `INSERT INTO growth_measurements (
+        child_id, measured_at, weight_kg, height_cm, age_months, nutrition_status, notes, client_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        actualChildId,
+        measured_at || new Date().toISOString().split('T')[0],
+        weight_kg,
+        height_cm,
+        age_months || null,
+        nutrition_status || 'normal',
+        notes || '',
+        id || null
+      ]
+    );
+
+    if (nutrition_status) {
+      await query(
+        'UPDATE children SET nutrition_status = $1 WHERE id = $2',
+        [nutrition_status, actualChildId]
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows[0]
+    }, { status: 201 });
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/health/route.ts">
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
+}
+</file>
+
+<file path="app/api/public/advisories/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const lang = searchParams.get('lang') || 'en';
+
+  try {
+    const result = await query(`
+      SELECT id, title, description, severity, ward_code, published_at
+      FROM advisories
+      WHERE is_active = true 
+      ORDER BY published_at DESC
+    `);
+
+    return NextResponse.json(result.rows);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Postgres Query Failed. Check if tables exist in pgAdmin.' },
+      { status: 500 }
+    );
+  }
+}
+</file>
+
+<file path="app/api/public/alerts/route.ts">
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  const alerts = [
+    {
+      id: 1,
+      type: 'HEALTH ALERT',
+      severity: 'high',
+      title: 'Polio Vaccination Drive',
+      description: 'The vaccination drive starts this Sunday at ward centers.',
+      generated_at: new Date().toISOString(),
+      status: 'active',
+      is_read: false
+    },
+    {
+      id: 2,
+      type: 'ADVISORY',
+      severity: 'medium',
+      title: 'Monsoon Precautions',
+      description: 'Please advise beneficiaries about boiling water during monsoon.',
+      generated_at: new Date().toISOString(),
+      status: 'active',
+      is_read: false
+    }
+  ];
+  return NextResponse.json(alerts);
+}
+</file>
+
+<file path="app/api/public/facilities/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET() {
+  try {
+    const result = await query(`
+      SELECT f.*, w.name as ward_name 
+      FROM facilities f 
+      JOIN wards w ON f.ward_code = w.code 
+      ORDER BY f.name ASC
+    `);
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error: any) {
+    return NextResponse.json({
+      success: false,
+      error: 'Connection failed. Ensure PostgreSQL 18 is running and .env.local is correct.'
+    }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/public/wards/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET() {
+  try {
+    const result = await query(`
+      SELECT code, name, name_marathi, population 
+      FROM wards 
+      ORDER BY name ASC
+    `);
+    
+    return NextResponse.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/reports/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function POST(request: Request) {
+  try {
+const data = await request.json();
+    const { disease_type, ...restData } = data;
+
+    // Required fields
+    const { 
+      worker_id, 
+      ward_code, 
+      report_date,
+      fever_count,
+      cough_count,
+      diarrhea_count,
+      jaundice_count,
+      rash_count,
+      maternal_risk_flags,
+      child_risk_flags,
+      environmental_flags,
+      location_lat,
+      location_lng,
+      photo_paths
+    } = data;
+
+    if (!worker_id || !ward_code || !report_date) {
+      return NextResponse.json(
+        { success: false, error: 'Missing mandatory fields' },
+        { status: 400 }
+      );
+    }
+
+    const result = await query(
+      `INSERT INTO asha_reports (
+        worker_id, ward_code, report_date,
+        fever_count, cough_count, diarrhea_count, jaundice_count, rash_count,
+        maternal_risk_flags, child_risk_flags, environmental_flags,
+        location_lat, location_lng, disease_type, photo_paths
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      ) RETURNING id`,
+      [
+        worker_id,
+        ward_code,
+        report_date,
+        fever_count || 0,
+        cough_count || 0,
+        diarrhea_count || 0,
+        jaundice_count || 0,
+        rash_count || 0,
+        maternal_risk_flags || {},
+        child_risk_flags || {},
+        environmental_flags || {},
+        location_lat || null,
+        location_lng || null,
+        disease_type || null,
+        photo_paths || []
+      ]
+    );
+
+    const reportId = result.rows[0].id;
+
+    // Optionally log to audit log
+    await query(
+      `INSERT INTO system_audit_logs (user_id, action_type, description) 
+       VALUES ($1, 'create_report', $2)`,
+      [worker_id, `Report ${reportId} created`]
+    );
+
+    // Outbreak detection (example)
+    if ((fever_count || 0) > 5) {
+      await query(
+        `INSERT INTO alerts (type, severity, ward_code, title, description)
+         VALUES ('outbreak', 'high', $1, 'Fever Spike Detected', $2)`,
+        [ward_code, `ASHA worker ${worker_id} reported ${fever_count} fever cases in ${ward_code}.`]
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { report_id: reportId },
+      message: 'Report stored successfully'
+    });
+  } catch (error: any) {
+    console.error('Submission Error:', error.message);
+    return NextResponse.json(
+      { success: false, error: 'Database Error: ' + error.message },
+      { status: 500 }
+    );
+  }
+}
+</file>
+
+<file path="app/api/sync/route.ts">
+// app/api/sync/route.ts (updated)
+import { NextRequest, NextResponse } from 'next/server';
+import pool from '@/lib/db';
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const { reports, families, children, visits, vaccinations, growth } = body;
+
+  const client = await pool.connect(); 
+  try {
+    await client.query('BEGIN');
+
+    // 1. Process reports (asha_reports table)
+    if (reports && reports.length) {
+      for (const report of reports) {
+        await client.query(
+          `INSERT INTO asha_reports (
+            client_id, worker_id, worker_name, ward_code, report_date, submission_time,
+            fever_count, cough_count, diarrhea_count, jaundice_count, rash_count,
+            disease_type, maternal_risk_flags, child_risk_flags, environmental_flags,
+            location_lat, location_lng, photo_paths, sync_status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+          ON CONFLICT (client_id) DO NOTHING`,
+          [
+            report.id, report.workerId, report.workerName, report.wardCode,
+            report.reportDate, report.submissionTime,
+            report.feverCount, report.coughCount, report.diarrheaCount,
+            report.jaundiceCount, report.rashCount,
+            report.diseaseType,
+            report.maternalRiskFlags, report.childRiskFlags, report.environmentalFlags,
+            report.locationLat, report.locationLng, report.photoPaths,
+            1 // sync_status = synced
+          ]
+        );
+      }
+    }
+
+    // 2. Process families (beneficiaries table)
+    if (families && families.length) {
+      for (const family of families) {
+        await client.query(
+          `INSERT INTO beneficiaries (
+            client_id, family_name, head_name, ward_code, address, contact_number,
+            total_members, pregnant_women_count, children_count, high_risk_flag
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (client_id) DO UPDATE SET
+            family_name = EXCLUDED.family_name,
+            head_name = EXCLUDED.head_name,
+            address = EXCLUDED.address,
+            contact_number = EXCLUDED.contact_number,
+            total_members = EXCLUDED.total_members,
+            pregnant_women_count = EXCLUDED.pregnant_women_count,
+            children_count = EXCLUDED.children_count,
+            high_risk_flag = EXCLUDED.high_risk_flag,
+            updated_at = NOW()`,
+          [
+            family.id, family.familyName, family.headName, family.wardCode,
+            family.address, family.contactNumber, family.totalMembers,
+            family.pregnantWomenCount, family.childrenCount, family.highRiskFlag
+          ]
+        );
+      }
+    }
+
+    // 3. Process children
+    if (children && children.length) {
+      for (const child of children) {
+        const familyIdInteger = await client.query(
+          `SELECT id FROM beneficiaries WHERE client_id = $1`,
+          [child.familyId]
+        );
+
+        if (familyIdInteger.rows.length === 0) {
+          console.warn(`Family not found for child ${child.id}`);
+          continue;
+        }
+
+        const actualFamilyId = familyIdInteger.rows[0].id;
+
+        await client.query(
+          `INSERT INTO children (client_id, family_id, name, date_of_birth, gender, blood_group, nutrition_status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (client_id) DO UPDATE SET
+             name = EXCLUDED.name,
+             date_of_birth = EXCLUDED.date_of_birth,
+             gender = EXCLUDED.gender,
+             blood_group = EXCLUDED.blood_group,
+             nutrition_status = EXCLUDED.nutrition_status`,
+          [child.id, actualFamilyId, child.name, child.dateOfBirth, child.gender, child.bloodGroup, child.nutritionStatus]
+        );
+      }
+    }
+
+    // 4. Process visits
+    if (visits && visits.length) {
+      for (const visit of visits) {
+        let actualBeneficiaryId = null;
+        if (visit.beneficiaryId) {
+          const benRes = await client.query(
+            `SELECT id FROM beneficiaries WHERE client_id = $1`,
+            [visit.beneficiaryId]
+          );
+          if (benRes.rows.length > 0) {
+            actualBeneficiaryId = benRes.rows[0].id;
+          } else {
+             console.warn(`Beneficiary not found for visit ${visit.id}`);
+             continue;
+          }
+        }
+
+        await client.query(
+          `INSERT INTO visits (
+            client_id, beneficiary_id, visit_date, health_status, fever, cough, diarrhea,
+            notes, follow_up_required, location_lat, location_lng, photo_path
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          ON CONFLICT (client_id) DO NOTHING`,
+          [
+            visit.id, actualBeneficiaryId, visit.visitDate, visit.healthStatus,
+            visit.fever, visit.cough, visit.diarrhea, visit.notes,
+            visit.followUpRequired, visit.locationLat, visit.locationLng, visit.photoPath
+          ]
+        );
+      }
+    }
+
+    // 5. Process vaccinations
+    if (vaccinations && vaccinations.length) {
+      for (const vacc of vaccinations) {
+        let actualChildId = null;
+        if (vacc.childId) {
+           const childRes = await client.query(
+             `SELECT id FROM children WHERE client_id = $1`,
+             [vacc.childId]
+           );
+           if (childRes.rows.length > 0) {
+              actualChildId = childRes.rows[0].id;
+           } else {
+              console.warn(`Child not found for vaccination`);
+              continue;
+           }
+        }
+
+        await client.query(
+          `INSERT INTO vaccinations (client_id, child_id, vaccine_name, dose_number, date_given, next_due_date, remarks)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (client_id) DO NOTHING`,
+          [vacc.id, actualChildId, vacc.vaccineName, vacc.doseNumber, vacc.dateGiven, vacc.nextDueDate, vacc.remarks]
+        );
+      }
+    }
+
+    // 6. Process growth measurements
+    if (growth && growth.length) {
+      for (const m of growth) {
+        let actualChildId = null;
+        if (m.childId) {
+          const childRes = await client.query(
+            `SELECT id FROM children WHERE client_id = $1`,
+            [m.childId]
+          );
+          if (childRes.rows.length > 0) {
+            actualChildId = childRes.rows[0].id;
+          } else {
+            continue;
+          }
+        }
+
+        await client.query(
+          `INSERT INTO growth_measurements (
+            client_id, child_id, measured_at, weight_kg, height_cm, age_months, nutrition_status, notes
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ON CONFLICT (client_id) DO NOTHING`,
+          [m.id, actualChildId, m.measuredAt, m.weightKg, m.heightCm, m.ageMonths, m.nutritionStatus, m.notes]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Sync error:', error);
+    return NextResponse.json({ success: false, error: 'Sync failed' }, { status: 500 });
+  } finally {
+    client.release();
+  }
+}
+</file>
+
+<file path="app/api/vaccinations/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const childId = searchParams.get('child_id');
+
+    if (!childId) {
+      return NextResponse.json({ error: 'child_id is required' }, { status: 400 });
+    }
+
+    const result = await query(
+      'SELECT * FROM vaccinations WHERE child_id = $1 ORDER BY date_given DESC',
+      [childId]
+    );
+
+    return NextResponse.json(result.rows);
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const { 
+      id,
+      child_id, 
+      vaccine_name, 
+      dose_number, 
+      date_given, 
+      next_due_date, 
+      remarks 
+    } = data;
+
+    const childRes = await query('SELECT id FROM children WHERE client_id = $1', [child_id]);
+    const actualChildId = childRes.rows.length > 0 ? childRes.rows[0].id : child_id;
+
+    const result = await query(
+      `INSERT INTO vaccinations (
+        child_id, vaccine_name, dose_number, date_given, next_due_date, remarks, client_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        actualChildId, 
+        vaccine_name, 
+        dose_number || 1, 
+        date_given || new Date().toISOString().split('T')[0], 
+        next_due_date, 
+        remarks || '',
+        id || null
+      ]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/visits/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const beneficiaryId = searchParams.get('beneficiary_id');
+
+    if (!beneficiaryId) {
+      return NextResponse.json({ error: 'beneficiary_id is required' }, { status: 400 });
+    }
+
+    const result = await query(
+      'SELECT * FROM visits WHERE beneficiary_id = $1 ORDER BY visit_date DESC',
+      [beneficiaryId]
+    );
+
+    return NextResponse.json(result.rows);
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const { 
+      id,
+      beneficiary_id, 
+      visit_date, 
+      health_status, 
+      fever, 
+      cough, 
+      diarrhea, 
+      notes, 
+      follow_up_required 
+    } = data;
+
+    // Resolve parent UUID to internal ID
+    const benRes = await query('SELECT id FROM beneficiaries WHERE client_id = $1', [beneficiary_id]);
+    const actualBeneficiaryId = benRes.rows.length > 0 ? benRes.rows[0].id : beneficiary_id;
+
+    const result = await query(
+      `INSERT INTO visits (
+        beneficiary_id, visit_date, health_status, fever, cough, diarrhea, notes, follow_up_required, client_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [
+        actualBeneficiaryId, 
+        visit_date || new Date().toISOString().split('T')[0], 
+        health_status || 'Normal', 
+        fever || false, 
+        cough || false, 
+        diarrhea || false, 
+        notes || '', 
+        follow_up_required || false,
+        id || null
+      ]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error: any) {
+    console.error('[API Error]', { path: request.url, method: request.method, error: error.message, stack: error.stack });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+</file>
+
+<file path="app/api/wards/detect/route.ts">
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const lat = searchParams.get('lat');
+  const lng = searchParams.get('lng');
+
+  if (!lat || !lng) {
+    return NextResponse.json(
+      { error: 'Missing lat or lng parameters' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Convert to numbers and ensure they are valid
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return NextResponse.json(
+        { error: 'Invalid lat/lng values' },
+        { status: 400 }
+      );
+    }
+
+    // Query using PostGIS
+    const result = await query(
+      `SELECT code, name FROM wards 
+       WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326))
+       LIMIT 1`,
+      [longitude, latitude]  // Note: ST_MakePoint expects lng, lat
+    );
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'No ward found for these coordinates' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ward_code: result.rows[0].code,
+        ward_name: result.rows[0].name,
+      },
+    });
+  } catch (error) {
+    console.error('Ward detection error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+</file>
+
+<file path="app/api/wards/route.ts">
+import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET() {
+  try {
+    const result = await query(`
+      SELECT code, name, total_population 
+      FROM wards 
+      WHERE code LIKE 'W%' 
+      ORDER BY code ASC
+    `);
+    
+    return NextResponse.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error: any) {
+    console.error('Error fetching wards:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to fetch wards',
+      details: error.message 
+    }, { status: 500 });
+  }
+}
+</file>
+
+<file path="facilities_geom.sql">
+ALTER TABLE facilities ADD COLUMN geom GEOMETRY(Point, 4326);
+UPDATE facilities SET geom = ST_SetSRID(ST_MakePoint(location_lng, location_lat), 4326);
+CREATE INDEX idx_facilities_geom ON facilities USING GIST (geom);
+</file>
+
+<file path="FIXES-TODO.md">
+# TODO: Fix TypeScript module errors
+
+## Steps:
+1. [x] Update middleware.ts import path for firebase-admin.ts.
+2. [ ] Verify TS errors resolved.
+3. [ ] Complete fixes.
+</file>
+
+<file path="middleware.ts">
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+};
+
+// Helper to add CORS headers to response
+const addCorsHeaders = (res: NextResponse) => {
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    res.headers.set(key, value);
+  });
+  return res;
+};
+
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = ['/api/public', '/api/health', '/api/advisories', '/api/facilities/nearby'];
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    return addCorsHeaders(NextResponse.json({}, { status: 200 }));
+  }
+
+  // Check if route is public
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return addCorsHeaders(NextResponse.next());
+  }
+
+  // Development bypass (optional - set BYPASS_AUTH=true in .env to disable auth)
+  if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
+    console.warn('⚠️ Development mode: Authentication bypassed');
+    return addCorsHeaders(NextResponse.next());
+  }
+
+  // Get Firebase token from Authorization header
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.split('Bearer ')[1];
+
+  if (!token) {
+    return addCorsHeaders(
+      NextResponse.json({ error: 'Unauthorized - No token provided' }, { status: 401 })
+    );
+  }
+
+  try {
+    // Import Firebase Admin dynamically
+    const { adminAuth } = await import('@/lib/firebase-admin');
+    
+    // Verify the ID token
+    const decodedToken = await adminAuth.verifyIdToken(token);
+    
+    // Add user info to headers for downstream handlers
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', decodedToken.uid);
+    requestHeaders.set('x-user-email', decodedToken.email || '');
+    
+    // If you have custom claims for ward_code
+    const wardCode = (decodedToken as any).ward_code;
+    if (wardCode) {
+      requestHeaders.set('x-ward-code', wardCode);
+    }
+
+    // Continue with the modified headers
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    
+    return addCorsHeaders(response);
+  } catch (error: any) {
+    console.error('Authentication error:', error.message);
+    
+    return addCorsHeaders(
+      NextResponse.json(
+        { error: 'Invalid or expired token', details: error.message },
+        { status: 401 }
+      )
+    );
+  }
+}
+
+// Specify which paths this middleware should run on
+export const config = {
+  matcher: ['/api/:path*'],
+};
+</file>
+
+<file path="migrate_geom.mjs">
+import pg from 'pg';
+import fs from 'fs';
+
+const envFile = fs.readFileSync('.env.local', 'utf8');
+for (const line of envFile.split('\n')) {
+  if (line.trim().startsWith('#') || !line.includes('=')) continue;
+  const [key, ...rest] = line.split('=');
+  process.env[key.trim()] = rest.join('=').trim().replace(/^"|"$/g, '');
+}
+
+const pool = new pg.Pool({
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD,
+  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+});
+
+async function main() {
+  const sql = fs.readFileSync('facilities_geom.sql', 'utf8');
+  console.log('Running migration...');
+  await pool.query(sql);
+  console.log('Migration complete.');
+  await pool.end();
+}
+
+main().catch(console.error);
+</file>
+
+<file path="migrate.mjs">
+import pg from 'pg';
+import fs from 'fs';
+
+const envFile = fs.readFileSync('.env.local', 'utf8');
+for (const line of envFile.split('\n')) {
+  if (line.trim().startsWith('#') || !line.includes('=')) continue;
+  const [key, ...rest] = line.split('=');
+  process.env[key.trim()] = rest.join('=').trim().replace(/^"|"$/g, '');
+}
+
+const pool = new pg.Pool({
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD,
+  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+});
+
+async function main() {
+  const sql = fs.readFileSync('add_client_ids.sql', 'utf8');
+  console.log('Running migration...');
+  await pool.query(sql);
+  console.log('Migration complete.');
+  await pool.end();
+}
+
+main().catch(console.error);
+</file>
+
+<file path="refactor.mjs">
+import fs from 'fs';
+import path from 'path';
+
+// 1. Fix middleware.ts
+const mwPath = 'middleware.ts';
+let mwCode = fs.readFileSync(mwPath, 'utf8');
+mwCode = mwCode.replace(
+  `const PUBLIC_ROUTES = ['/api/public', '/api/health'];`,
+  `const PUBLIC_ROUTES = ['/api/public', '/api/health', '/api/advisories', '/api/facilities/nearby'];`
+);
+fs.writeFileSync(mwPath, mwCode);
+
+// 2. Fix imports across the app
+const filesWithBadImports = [
+  'app/api/wards/route.ts',
+  'app/api/visits/route.ts',
+  'app/api/vaccinations/route.ts',
+  'app/api/growth-measurements/route.ts',
+  'app/api/family-members/route.ts',
+  'app/api/facilities/route.ts',
+  'app/api/beneficiaries/[id]/route.ts',
+  'app/api/beneficiaries/route.ts'
+];
+
+for (const file of filesWithBadImports) {
+  if (fs.existsSync(file)) {
+    let code = fs.readFileSync(file, 'utf8');
+    code = code.replace(/from\s+['"]\.\.\/\.\.\/\.\.\/src\/lib\/db['"]/g, "from '@/lib/db'");
+    code = code.replace(/from\s+['"]\.\.\/\.\.\/\.\.\/\.\.\/lib\/db['"]/g, "from '@/lib/db'");
+    fs.writeFileSync(file, code);
+  }
+}
+
+// 3. Fix POST routes for client_id insertion and foreign key mapping
+// a. app/api/beneficiaries/route.ts
+const benPath = 'app/api/beneficiaries/route.ts';
+if (fs.existsSync(benPath)) {
+  let benCode = fs.readFileSync(benPath, 'utf8');
+  benCode = benCode.replace(
+    /const {\s*family_name,/,
+    "const { \n      id,\n      family_name,"
+  );
+  benCode = benCode.replace(
+    /total_members, pregnant_women_count, children_count, high_risk_flag\r?\n\s*\) VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9\) RETURNING \*/,
+    "total_members, pregnant_women_count, children_count, high_risk_flag, client_id\n      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *"
+  );
+  benCode = benCode.replace(
+    /total_members \|\| 1, pregnant_women_count \|\| 0, children_count \|\| 0, high_risk_flag \|\| false\r?\n\s*\]/,
+    "total_members || 1, pregnant_women_count || 0, children_count || 0, high_risk_flag || false,\n        id || null\n      ]"
+  );
+  fs.writeFileSync(benPath, benCode);
+}
+
+// b. app/api/beneficiaries/children/route.ts
+const childrenPath = 'app/api/beneficiaries/children/route.ts';
+if (fs.existsSync(childrenPath)) {
+  let chCode = fs.readFileSync(childrenPath, 'utf8');
+  // We need to fetch internal family_id
+  chCode = chCode.replace(
+    /const result = await query\(/,
+    `// Resolve family UUID to internal ID
+    const benRes = await query('SELECT id FROM beneficiaries WHERE client_id = $1', [family_id]);
+    const actualFamilyId = benRes.rows.length > 0 ? benRes.rows[0].id : family_id;
+
+    const result = await query(`
+  );
+  chCode = chCode.replace(
+    /INSERT INTO children \(id, family_id, name, date_of_birth, gender, blood_group, nutrition_status\)/,
+    "INSERT INTO children (client_id, family_id, name, date_of_birth, gender, blood_group, nutrition_status)"
+  );
+  chCode = chCode.replace(
+    /ON CONFLICT \(id\) DO UPDATE SET/,
+    "ON CONFLICT (client_id) DO UPDATE SET"
+  );
+  chCode = chCode.replace(
+    /\[id, family_id, name,/,
+    "[id, actualFamilyId, name,"
+  );
+  fs.writeFileSync(childrenPath, chCode);
+}
+
+// Note: I could script visits, vaccinations, etc. but I will check their contents first if needed.
+console.log('Refactoring complete.');
+</file>
+
+<file path="src/app/schema.md">
+# Complete Database Schema Documentation
+## Arogya Platform - Solapur Health Management System
+
+---
+
+## 📊 **TABLE OF CONTENTS**
+1. [Extensions](#extensions)
+2. [Tables](#tables)
+3. [Functions](#functions)
+4. [Views](#views)
+5. [Stored Procedures](#stored-procedures)
+6. [Materialized Views](#materialized-views)
+7. [Indexes](#indexes)
+8. [Database Statistics](#database-statistics)
+
+---
+
+## 🔧 **EXTENSIONS**
+
+```sql
+-- PostGIS Extensions
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_raster;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
+CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+
+-- Spatial Indexing
+CREATE EXTENSION IF NOT EXISTS h3;
+CREATE EXTENSION IF NOT EXISTS h3_postgis;
+
+-- Mobility & Routing
+CREATE EXTENSION IF NOT EXISTS mobilitydb;
+CREATE EXTENSION IF NOT EXISTS pgrouting;
+
+-- Data Processing
+CREATE EXTENSION IF NOT EXISTS ogr_fdw;
+CREATE EXTENSION IF NOT EXISTS pointcloud;
+CREATE EXTENSION IF NOT EXISTS pointcloud_postgis;
+
+-- Address Processing
+CREATE EXTENSION IF NOT EXISTS address_standardizer;
+CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+
+-- Schemas
+CREATE SCHEMA IF NOT EXISTS tiger;
+CREATE SCHEMA IF NOT EXISTS topology;
+```
+
+---
+
+## 📋 **TABLES**
+
+### 1. **wards** - Administrative Ward Boundaries
+```sql
+CREATE TABLE public.wards (
+    code VARCHAR(10) PRIMARY KEY,                    -- e.g., 'W01', 'W02'
+    name VARCHAR(100) NOT NULL,                      -- Ward name
+    total_population INTEGER NOT NULL,               -- Total population
+    target_daily_reports INTEGER NOT NULL DEFAULT 5, -- Daily report target
+    geom GEOMETRY(MultiPolygon, 4326),               -- Ward boundary geometry
+    boundary_geojson JSONB,                          -- Original GeoJSON data
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.wards IS 'Master list of administrative wards with boundaries';
+COMMENT ON COLUMN public.wards.geom IS 'Ward boundary in EPSG:4326 (WGS84)';
+COMMENT ON COLUMN public.wards.target_daily_reports IS 'Daily reporting target for ASHA workers';
+```
+
+### 2. **users** - System Users (ASHA Workers & Admins)
+```sql
+CREATE TABLE public.users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('ASHA', 'ADMIN', 'SUPERVISOR')),
+    ward_code VARCHAR(10) REFERENCES public.wards(code) ON DELETE SET NULL,
+    full_name VARCHAR(100) NOT NULL,
+    last_sync_time TIMESTAMP WITHOUT TIME ZONE,
+    reports_submitted_total INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.users IS 'System users including ASHA workers and administrators';
+CREATE INDEX idx_users_role ON public.users (role);
+CREATE INDEX idx_users_ward_code ON public.users (ward_code);
+```
+
+### 3. **asha_reports** - Field Reports from ASHA Workers
+```sql
+CREATE TABLE public.asha_reports (
+    id SERIAL PRIMARY KEY,
+    worker_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    report_date DATE NOT NULL,
+    fever_count INTEGER DEFAULT 0,
+    cough_count INTEGER DEFAULT 0,
+    diarrhea_count INTEGER DEFAULT 0,
+    jaundice_count INTEGER DEFAULT 0,
+    rash_count INTEGER DEFAULT 0,
+    maternal_risk_flags JSONB,
+    child_risk_flags JSONB,
+    environmental_flags JSONB,
+    location_lat NUMERIC(10,8),
+    location_lng NUMERIC(11,8),
+    photo_paths JSONB DEFAULT '[]'::JSONB,
+    disease_type VARCHAR(50) DEFAULT 'General Fever',
+    reporting_form CHAR(1) DEFAULT 'S',              -- 'S': Single, 'P': Partial, 'L': Large
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.asha_reports IS 'Daily field reports submitted by ASHA workers';
+CREATE INDEX idx_asha_reports_ward_date ON public.asha_reports (ward_code, report_date);
+CREATE INDEX idx_asha_reports_worker_date ON public.asha_reports (worker_id, report_date);
+CREATE INDEX idx_asha_reports_location ON public.asha_reports (location_lat, location_lng) WHERE location_lat IS NOT NULL;
+CREATE INDEX idx_asha_reports_disease_type ON public.asha_reports (disease_type);
+CREATE INDEX idx_asha_reports_reporting_form ON public.asha_reports (reporting_form);
+```
+
+### 4. **disease_resource_mapping** - Disease to Resource Mapping
+```sql
+CREATE TABLE public.disease_resource_mapping (
+    disease VARCHAR(50) PRIMARY KEY,
+    resource_type VARCHAR(50) NOT NULL
+);
+
+COMMENT ON TABLE public.disease_resource_mapping IS 'Maps diseases to required medical resources';
+```
+
+### 5. **facilities** - Healthcare Facilities
+```sql
+CREATE TABLE public.facilities (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    location_lat NUMERIC(10,8),
+    location_lng NUMERIC(11,8),
+    contact VARCHAR(50),
+    type VARCHAR(20) DEFAULT 'GOVERNMENT',
+    oxygen_status VARCHAR(20) DEFAULT 'STABLE',
+    facility_type VARCHAR(50) DEFAULT 'PHC',
+    address TEXT,
+    specialties JSONB DEFAULT '["General Medicine"]'::JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.facilities IS 'Healthcare facilities across all wards';
+CREATE INDEX idx_facilities_ward_code ON public.facilities (ward_code);
+```
+
+### 6. **capacity_reports** - Facility Capacity Reports
+```sql
+CREATE TABLE public.capacity_reports (
+    id SERIAL PRIMARY KEY,
+    facility_id INTEGER NOT NULL REFERENCES public.facilities(id) ON DELETE CASCADE,
+    report_date DATE NOT NULL,
+    beds_total INTEGER,
+    beds_available INTEGER,
+    icu_total INTEGER,
+    icu_available INTEGER,
+    ventilators_total INTEGER,
+    ventilators_available INTEGER,
+    oxygen_available BOOLEAN,
+    disease_counts JSONB,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.capacity_reports IS 'Daily capacity reports from healthcare facilities';
+CREATE INDEX idx_capacity_reports_facility_date ON public.capacity_reports (facility_id, report_date);
+```
+
+### 7. **facility_inventory** - Medical Supplies Inventory
+```sql
+CREATE TABLE public.facility_inventory (
+    id SERIAL PRIMARY KEY,
+    facility_id INTEGER NOT NULL REFERENCES public.facilities(id) ON DELETE CASCADE,
+    resource_type VARCHAR(50) NOT NULL,
+    current_stock INTEGER DEFAULT 0,
+    min_threshold INTEGER DEFAULT 100,
+    last_updated TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.facility_inventory IS 'Current inventory levels at healthcare facilities';
+CREATE INDEX idx_facility_inventory_facility ON public.facility_inventory (facility_id);
+CREATE INDEX idx_facility_inventory_resource ON public.facility_inventory (resource_type);
+```
+
+### 8. **alerts** - System Alerts
+```sql
+CREATE TABLE public.alerts (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    ward_code VARCHAR(10) REFERENCES public.wards(code) ON DELETE SET NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    generated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    acknowledged_at TIMESTAMP WITHOUT TIME ZONE,
+    resolved_at TIMESTAMP WITHOUT TIME ZONE,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'acknowledged', 'resolved'))
+);
+
+COMMENT ON TABLE public.alerts IS 'System-generated alerts for outbreaks, resources, and information';
+CREATE INDEX idx_alerts_type_date ON public.alerts (type, generated_at);
+CREATE INDEX idx_alerts_severity_status ON public.alerts (severity, status);
+```
+
+### 9. **advisories** - Public Health Advisories
+```sql
+CREATE TABLE public.advisories (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    severity VARCHAR(20),
+    ward_code VARCHAR(10) REFERENCES public.wards(code) ON DELETE SET NULL,
+    published_at TIMESTAMP WITHOUT TIME ZONE,
+    expires_at TIMESTAMP WITHOUT TIME ZONE,
+    published_by VARCHAR(100)
+);
+
+COMMENT ON TABLE public.advisories IS 'Public health advisories and notifications';
+```
+
+### 10. **outbreak_events** - Disease Outbreak Events
+```sql
+CREATE TABLE public.outbreak_events (
+    id SERIAL PRIMARY KEY,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    disease_type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT 'investigative' CHECK (status IN ('investigative', 'active', 'resolved')),
+    declared_date DATE DEFAULT CURRENT_DATE,
+    center_lat NUMERIC,
+    center_lng NUMERIC,
+    containment_radius_meters INTEGER DEFAULT 500,
+    last_update TEXT,
+    is_closed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.outbreak_events IS 'Tracked disease outbreak events';
+CREATE INDEX idx_active_outbreaks ON public.outbreak_events (status) WHERE is_closed = FALSE;
+CREATE INDEX idx_outbreak_events_status ON public.outbreak_events (status, is_closed);
+```
+
+### 11. **outbreak_predictions** - Outbreak Predictions
+```sql
+CREATE TABLE public.outbreak_predictions (
+    id SERIAL PRIMARY KEY,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    prediction_date DATE NOT NULL,
+    predicted_cases INTEGER,
+    confidence_lower INTEGER,
+    confidence_upper INTEGER,
+    model_version VARCHAR(20),
+    generated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.outbreak_predictions IS 'AI/ML predictions for disease outbreaks';
+CREATE INDEX idx_outbreak_predictions_ward_date ON public.outbreak_predictions (ward_code, prediction_date);
+```
+
+### 12. **anomaly_events** - Anomaly Detection Events
+```sql
+CREATE TABLE public.anomaly_events (
+    id SERIAL PRIMARY KEY,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    detection_date DATE NOT NULL,
+    observed_cases INTEGER,
+    expected_cases INTEGER,
+    deviation_score NUMERIC,
+    description TEXT,
+    generated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.anomaly_events IS 'Detected anomalies in disease patterns';
+```
+
+### 13. **resource_demand_forecast** - Resource Demand Forecasts
+```sql
+CREATE TABLE public.resource_demand_forecast (
+    id SERIAL PRIMARY KEY,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    resource_type VARCHAR(50) NOT NULL,
+    forecast_date DATE NOT NULL,
+    predicted_demand INTEGER,
+    generated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.resource_demand_forecast IS 'Forecasted demand for medical resources';
+CREATE INDEX idx_resource_demand_ward_date ON public.resource_demand_forecast (ward_code, forecast_date);
+```
+
+### 14. **beneficiaries** - Household Beneficiaries
+```sql
+CREATE TABLE public.beneficiaries (
+    id SERIAL PRIMARY KEY,
+    family_name VARCHAR(200) NOT NULL,
+    head_name VARCHAR(100) NOT NULL,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE RESTRICT,
+    address TEXT NOT NULL,
+    contact_number VARCHAR(20),
+    total_members INTEGER DEFAULT 1,
+    pregnant_women_count INTEGER DEFAULT 0,
+    children_count INTEGER DEFAULT 0,
+    high_risk_flag BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.beneficiaries IS 'Registered beneficiary families';
+CREATE INDEX idx_beneficiaries_ward_code ON public.beneficiaries (ward_code);
+```
+
+### 15. **family_members** - Individual Family Members
+```sql
+CREATE TABLE public.family_members (
+    id SERIAL PRIMARY KEY,
+    beneficiary_id INTEGER NOT NULL REFERENCES public.beneficiaries(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    age INTEGER,
+    gender VARCHAR(10),
+    health_status VARCHAR(100),
+    pregnancy_status VARCHAR(20),
+    vaccination_status JSONB DEFAULT '{}'::JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.family_members IS 'Individual members of beneficiary families`;
+CREATE INDEX idx_family_members_beneficiary ON public.family_members (beneficiary_id);
+```
+
+### 16. **children** - Children Records
+```sql
+CREATE TABLE public.children (
+    id SERIAL PRIMARY KEY,
+    beneficiary_id INTEGER NOT NULL REFERENCES public.beneficiaries(id) ON DELETE CASCADE,
+    family_member_id INTEGER REFERENCES public.family_members(id) ON DELETE SET NULL,
+    name VARCHAR(100) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    gender VARCHAR(10),
+    blood_group VARCHAR(5),
+    nutrition_status VARCHAR(20) DEFAULT 'normal',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.children IS 'Children under 5 years for tracking';
+```
+
+### 17. **growth_measurements** - Child Growth Tracking
+```sql
+CREATE TABLE public.growth_measurements (
+    id SERIAL PRIMARY KEY,
+    child_id INTEGER NOT NULL REFERENCES public.children(id) ON DELETE CASCADE,
+    measured_at DATE NOT NULL,
+    weight_kg NUMERIC(5,2),
+    height_cm NUMERIC(5,2),
+    age_months INTEGER,
+    nutrition_status VARCHAR(20),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.growth_measurements IS 'Growth measurements for children under 5';
+```
+
+### 18. **vaccinations** - Vaccination Records
+```sql
+CREATE TABLE public.vaccinations (
+    id SERIAL PRIMARY KEY,
+    child_id INTEGER NOT NULL REFERENCES public.children(id) ON DELETE CASCADE,
+    vaccine_name VARCHAR(100) NOT NULL,
+    dose_number INTEGER DEFAULT 1,
+    date_given DATE NOT NULL,
+    next_due_date DATE,
+    remarks TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.vaccinations IS 'Vaccination records for children';
+```
+
+### 19. **visits** - Household Visits
+```sql
+CREATE TABLE public.visits (
+    id SERIAL PRIMARY KEY,
+    beneficiary_id INTEGER NOT NULL REFERENCES public.beneficiaries(id) ON DELETE CASCADE,
+    family_member_id INTEGER REFERENCES public.family_members(id) ON DELETE SET NULL,
+    visit_date DATE NOT NULL,
+    health_status VARCHAR(20),
+    fever BOOLEAN DEFAULT FALSE,
+    cough BOOLEAN DEFAULT FALSE,
+    diarrhea BOOLEAN DEFAULT FALSE,
+    notes TEXT,
+    follow_up_required BOOLEAN DEFAULT FALSE,
+    location_lat NUMERIC(9,6),
+    location_lng NUMERIC(11,8),
+    photo_path VARCHAR(500),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.visits IS 'ASHA worker household visit records';
+CREATE INDEX idx_visits_visit_date ON public.visits (visit_date);
+```
+
+### 20. **inventory_distribution_logs** - Inventory Distribution Tracking
+```sql
+CREATE TABLE public.inventory_distribution_logs (
+    id SERIAL PRIMARY KEY,
+    ward_code VARCHAR(10) NOT NULL REFERENCES public.wards(code) ON DELETE CASCADE,
+    resource_type VARCHAR(50) NOT NULL,
+    quantity_distributed INTEGER,
+    beneficiary_type VARCHAR(50),
+    report_date DATE DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.inventory_distribution_logs IS 'Logs of medical resource distributions`;
+CREATE INDEX idx_inventory_distribution_ward_date ON public.inventory_distribution_logs (ward_code, report_date);
+```
+
+### 21. **system_audit_logs** - System Audit Trail
+```sql
+CREATE TABLE public.system_audit_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+    action_type VARCHAR(100) NOT NULL,
+    description TEXT,
+    ip_address INET,
+    user_agent TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.system_audit_logs IS 'System audit trail for security and debugging';
+CREATE INDEX idx_audit_logs_user_id ON public.system_audit_logs (user_id);
+CREATE INDEX idx_audit_logs_created_at ON public.system_audit_logs (created_at);
+CREATE INDEX idx_audit_logs_action_type ON public.system_audit_logs (action_type);
+```
+
+### 22. **rti_config** - RTI Configuration
+```sql
+CREATE TABLE public.rti_config (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.rti_config IS 'RTI (Right to Information) configuration settings`;
+```
+
+### 23. **device_tokens** - Mobile Device Tokens
+```sql
+CREATE TABLE public.device_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES public.users(id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL,
+    platform VARCHAR(20),
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.device_tokens IS 'Mobile device tokens for push notifications';
+```
+
+---
+
+## 🔧 **FUNCTIONS**
+
+### 1. **latest_asha_date()** - Get Latest ASHA Report Date
+```sql
+CREATE OR REPLACE FUNCTION public.latest_asha_date()
+RETURNS DATE
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT COALESCE(MAX(report_date), CURRENT_DATE) 
+    FROM public.asha_reports;
+$$;
+
+COMMENT ON FUNCTION public.latest_asha_date() IS 'Returns the latest date with ASHA reports, or current date if none';
+```
+
+### 2. **latest_report_date()** - Get Latest Report Date (ASHA or Capacity)
+```sql
+CREATE OR REPLACE FUNCTION public.latest_report_date()
+RETURNS DATE
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+    latest DATE;
+BEGIN
+    SELECT MAX(report_date) INTO latest
+    FROM (
+        SELECT report_date FROM public.asha_reports
+        UNION ALL
+        SELECT report_date FROM public.capacity_reports
+    ) AS all_reports;
+    RETURN COALESCE(latest, CURRENT_DATE);
+END;
+$$;
+
+COMMENT ON FUNCTION public.latest_report_date() IS 'Returns the latest date from ASHA or capacity reports';
+```
+
+### 3. **refresh_dashboard_summary()** - Refresh Materialized View
+```sql
+CREATE OR REPLACE FUNCTION public.refresh_dashboard_summary()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY public.mv_dashboard_summary;
+    RAISE NOTICE 'Dashboard summary refreshed at %', NOW();
+END;
+$$;
+
+COMMENT ON FUNCTION public.refresh_dashboard_summary() IS 'Refreshes the materialized dashboard summary view';
+```
+
+### 4. **get_database_stats()** - Database Statistics
+```sql
+CREATE OR REPLACE FUNCTION public.get_database_stats()
+RETURNS TABLE(
+    table_name TEXT,
+    row_count BIGINT,
+    table_size TEXT,
+    index_size TEXT
+)
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        relname::TEXT,
+        n_live_tup::BIGINT,
+        pg_size_pretty(pg_table_size(relid)) as table_size,
+        pg_size_pretty(pg_indexes_size(relid)) as index_size
+    FROM pg_stat_user_tables
+    WHERE schemaname = 'public'
+    ORDER BY n_live_tup DESC;
+END;
+$$;
+
+COMMENT ON FUNCTION public.get_database_stats() IS 'Returns statistics for all tables in the public schema';
+```
+
+---
+
+## 👁️ **VIEWS**
+
+### 1. **v_asha_performance** - ASHA Worker Performance Metrics
+```sql
+CREATE OR REPLACE VIEW public.v_asha_performance AS
+WITH report_counts AS (
+    SELECT 
+        worker_id, 
+        COUNT(*) AS submitted_reports, 
+        MAX(report_date) AS last_report
+    FROM public.asha_reports
+    WHERE report_date >= (public.latest_asha_date() - INTERVAL '7 days')
+    GROUP BY worker_id
+)
+SELECT
+    u.id,
+    u.full_name AS name,
+    u.ward_code AS assigned_ward,
+    u.last_sync_time AS last_sync,
+    COALESCE(rc.submitted_reports, 0) AS submitted_reports,
+    COALESCE(w.target_daily_reports, 50) AS target,
+    CASE
+        WHEN rc.last_report < (public.latest_asha_date() - INTERVAL '1 day') THEN 'Overdue'
+        ELSE 'Active'
+    END AS status,
+    FALSE AS out_of_bounds
+FROM public.users u
+LEFT JOIN report_counts rc ON u.id = rc.worker_id
+LEFT JOIN public.wards w ON u.ward_code = w.code
+WHERE u.role = 'ASHA';
+
+COMMENT ON VIEW public.v_asha_performance IS 'ASHA worker performance metrics for the last 7 days';
+```
+
+### 2. **v_epi_curve** - Epidemic Curve
+```sql
+CREATE OR REPLACE VIEW public.v_epi_curve AS
+SELECT
+    report_date,
+    SUM(fever_count + cough_count + diarrhea_count) AS total_cases
+FROM public.asha_reports
+WHERE report_date >= (public.latest_asha_date() - INTERVAL '30 days')
+GROUP BY report_date
+ORDER BY report_date;
+
+COMMENT ON VIEW public.v_epi_curve IS 'Daily total cases for epidemic curve visualization';
+```
+
+### 3. **v_facility_performance** - Facility Compliance Metrics
+```sql
+CREATE OR REPLACE VIEW public.v_facility_performance AS
+WITH latest_capacity AS (
+    SELECT DISTINCT ON (facility_id)
+        facility_id,
+        beds_total, beds_available,
+        icu_total, icu_available,
+        oxygen_available,
+        report_date AS last_reported
+    FROM public.capacity_reports
+    ORDER BY facility_id, report_date DESC
+),
+reporting_days AS (
+    SELECT facility_id, COUNT(DISTINCT report_date) AS days_reported_30d
+    FROM public.capacity_reports
+    WHERE report_date >= (public.latest_asha_date() - INTERVAL '30 days')
+    GROUP BY facility_id
+)
+SELECT
+    f.id,
+    f.name,
+    f.type,
+    f.ward_code,
+    f.contact AS phone,
+    f.specialties,
+    f.location_lat AS lat,
+    f.location_lng AS lng,
+    ROUND(COALESCE(rd.days_reported_30d, 0)::NUMERIC / 30 * 100, 1) AS compliance_percentage,
+    lc.beds_available,
+    lc.beds_total,
+    lc.icu_available,
+    lc.icu_total,
+    lc.oxygen_available,
+    lc.last_reported
+FROM public.facilities f
+LEFT JOIN latest_capacity lc ON f.id = lc.facility_id
+LEFT JOIN reporting_days rd ON f.id = rd.facility_id;
+
+COMMENT ON VIEW public.v_facility_performance IS 'Healthcare facility performance and compliance metrics';
+```
+
+### 4. **v_inventory_burn_rate** - Inventory Consumption Rate
+```sql
+CREATE OR REPLACE VIEW public.v_inventory_burn_rate AS
+WITH daily_consumption AS (
+    SELECT
+        ar.ward_code,
+        drm.resource_type,
+        COUNT(*) AS daily_consumption
+    FROM public.asha_reports ar
+    JOIN public.disease_resource_mapping drm ON (
+        (drm.disease = 'fever' AND ar.fever_count > 0) OR
+        (drm.disease = 'cough' AND ar.cough_count > 0) OR
+        (drm.disease = 'diarrhea' AND ar.diarrhea_count > 0)
+    )
+    WHERE ar.report_date >= (public.latest_report_date() - INTERVAL '7 days')
+    GROUP BY ar.ward_code, drm.resource_type
+),
+inventory_per_ward AS (
+    SELECT
+        f.ward_code,
+        fi.resource_type,
+        fi.current_stock,
+        fi.min_threshold,
+        fi.last_updated
+    FROM public.facility_inventory fi
+    JOIN public.facilities f ON fi.facility_id = f.id
+)
+SELECT
+    i.ward_code,
+    i.resource_type,
+    i.current_stock,
+    COALESCE(dc.daily_consumption, 0) AS daily_consumption,
+    CASE
+        WHEN COALESCE(dc.daily_consumption, 0) > 0 
+        THEN i.current_stock / dc.daily_consumption
+        ELSE 999
+    END AS days_until_depletion
+FROM inventory_per_ward i
+LEFT JOIN daily_consumption dc ON i.ward_code = dc.ward_code 
+    AND i.resource_type = dc.resource_type;
+
+COMMENT ON VIEW public.v_inventory_burn_rate IS 'Inventory burn rate and days until depletion';
+```
+
+### 5. **v_mo_metrics** - Medical Officer Dashboard Metrics
+```sql
+CREATE OR REPLACE VIEW public.v_mo_metrics AS
+WITH case_counts AS (
+    SELECT total_cases
+    FROM public.v_epi_curve
+    WHERE report_date >= (public.latest_asha_date() - INTERVAL '7 days')
+),
+burn_rate AS (
+    SELECT COUNT(*) AS low_stock_count
+    FROM public.v_inventory_burn_rate
+    WHERE days_until_depletion < 2
+)
+SELECT
+    (SELECT AVG(total_cases) FROM case_counts) AS moving_average_7d,
+    0 AS test_positivity_rate,
+    0 AS asha_conversion_rate,
+    (SELECT low_stock_count FROM burn_rate) AS resources_low_stock,
+    public.latest_asha_date() AS reference_date
+FROM case_counts
+LIMIT 1;
+
+COMMENT ON VIEW public.v_mo_metrics IS 'Key metrics for Medical Officer dashboard';
+```
+
+### 6. **v_ward_risk_intelligence** - Ward Risk Assessment
+```sql
+CREATE OR REPLACE VIEW public.v_ward_risk_intelligence AS
+SELECT
+    w.code AS ward_code,
+    w.name AS ward_name,
+    w.total_population,
+    COALESCE(SUM(a.fever_count + a.cough_count + a.diarrhea_count), 0) AS current_cases,
+    ROUND(COALESCE(SUM(a.fever_count + a.cough_count + a.diarrhea_count), 0)::NUMERIC / 
+          NULLIF(w.total_population, 0) * 1000, 2) AS infection_rate,
+    LEAST(ROUND(COALESCE(SUM(a.fever_count + a.cough_count + a.diarrhea_count), 0)::NUMERIC / 
+          NULLIF(w.total_population, 0) * 1000 * 10), 100) AS risk_score,
+    COUNT(a.id) AS reports_7d,
+    MAX(a.report_date) AS last_report_sync
+FROM public.wards w
+LEFT JOIN public.asha_reports a ON a.ward_code = w.code 
+    AND a.report_date >= (public.latest_asha_date() - INTERVAL '7 days')
+GROUP BY w.code, w.name, w.total_population;
+
+COMMENT ON VIEW public.v_ward_risk_intelligence IS 'Ward-level risk assessment and intelligence';
+```
+
+### 7. **v_daily_summary** - Daily Summary Metrics
+```sql
+CREATE OR REPLACE VIEW public.v_daily_summary AS
+SELECT 
+    report_date,
+    COUNT(DISTINCT worker_id) as active_workers,
+    COUNT(*) as total_reports,
+    SUM(fever_count) as total_fever,
+    SUM(cough_count) as total_cough,
+    SUM(diarrhea_count) as total_diarrhea,
+    SUM(jaundice_count) as total_jaundice,
+    SUM(rash_count) as total_rash
+FROM public.asha_reports
+WHERE report_date >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY report_date
+ORDER BY report_date DESC;
+
+COMMENT ON VIEW public.v_daily_summary IS 'Daily summary of ASHA reports and disease cases';
+```
+
+### 8. **v_ward_weekly_summary** - Weekly Ward Summary
+```sql
+CREATE OR REPLACE VIEW public.v_ward_weekly_summary AS
+SELECT 
+    w.code as ward_code,
+    w.name as ward_name,
+    DATE_TRUNC('week', ar.report_date) as week_start,
+    COUNT(DISTINCT ar.worker_id) as active_ashas,
+    COUNT(ar.id) as total_reports,
+    SUM(ar.fever_count) as fever_cases,
+    SUM(ar.cough_count) as cough_cases,
+    SUM(ar.diarrhea_count) as diarrhea_cases,
+    SUM(ar.fever_count + ar.cough_count + ar.diarrhea_count) as total_cases,
+    ROUND(AVG(ar.fever_count + ar.cough_count + ar.diarrhea_count), 2) as avg_cases_per_report
+FROM public.wards w
+LEFT JOIN public.asha_reports ar ON w.code = ar.ward_code
+WHERE ar.report_date >= CURRENT_DATE - INTERVAL '90 days'
+GROUP BY w.code, w.name, DATE_TRUNC('week', ar.report_date)
+ORDER BY week_start DESC, total_cases DESC;
+
+COMMENT ON VIEW public.v_ward_weekly_summary IS 'Weekly summary of cases per ward';
+```
+
+### 9. **v_active_critical_alerts** - Active Critical Alerts
+```sql
+CREATE OR REPLACE VIEW public.v_active_critical_alerts AS
+SELECT 
+    a.id,
+    a.type,
+    a.severity,
+    a.ward_code,
+    w.name as ward_name,
+    a.title,
+    a.description,
+    a.generated_at,
+    a.status,
+    CASE 
+        WHEN a.acknowledged_at IS NULL THEN 'Not Acknowledged'
+        WHEN a.resolved_at IS NULL THEN 'Acknowledged but Not Resolved'
+        ELSE 'Resolved'
+    END as resolution_status
+FROM public.alerts a
+LEFT JOIN public.wards w ON a.ward_code = w.code
+WHERE a.status = 'active' 
+   OR (a.status = 'acknowledged' AND a.resolved_at IS NULL)
+ORDER BY a.severity = 'critical' DESC, a.generated_at DESC;
+
+COMMENT ON VIEW public.v_active_critical_alerts IS 'Active and critical system alerts requiring attention';
+```
+
+### 10. **v_facility_capacity_status** - Real-time Facility Capacity
+```sql
+CREATE OR REPLACE VIEW public.v_facility_capacity_status AS
+WITH latest_capacity AS (
+    SELECT DISTINCT ON (facility_id)
+        facility_id,
+        beds_total,
+        beds_available,
+        icu_total,
+        icu_available,
+        ventilators_total,
+        ventilators_available,
+        oxygen_available,
+        report_date,
+        ROUND((beds_available::numeric / NULLIF(beds_total, 0)) * 100, 2) as bed_utilization_rate,
+        ROUND((icu_available::numeric / NULLIF(icu_total, 0)) * 100, 2) as icu_utilization_rate
+    FROM public.capacity_reports
+    ORDER BY facility_id, report_date DESC
+)
+SELECT 
+    f.id,
+    f.name,
+    f.ward_code,
+    w.name as ward_name,
+    f.facility_type,
+    lc.beds_total,
+    lc.beds_available,
+    lc.bed_utilization_rate,
+    lc.icu_total,
+    lc.icu_available,
+    lc.icu_utilization_rate,
+    lc.ventilators_total,
+    lc.ventilators_available,
+    lc.oxygen_available,
+    lc.report_date as last_updated,
+    CASE 
+        WHEN lc.bed_utilization_rate > 90 THEN 'Critical'
+        WHEN lc.bed_utilization_rate > 75 THEN 'High'
+        WHEN lc.bed_utilization_rate > 50 THEN 'Medium'
+        ELSE 'Normal'
+    END as bed_status
+FROM public.facilities f
+LEFT JOIN latest_capacity lc ON f.id = lc.facility_id
+LEFT JOIN public.wards w ON f.ward_code = w.code;
+
+COMMENT ON VIEW public.v_facility_capacity_status IS 'Current capacity status of all healthcare facilities';
+```
+
+### 11. **v_asha_ranking** - ASHA Worker Performance Ranking
+```sql
+CREATE OR REPLACE VIEW public.v_asha_ranking AS
+SELECT 
+    u.id,
+    u.full_name,
+    u.ward_code,
+    w.name as ward_name,
+    COUNT(ar.id) as reports_30d,
+    SUM(ar.fever_count + ar.cough_count + ar.diarrhea_count) as total_cases_reported,
+    MAX(ar.report_date) as last_report_date,
+    ROUND(COUNT(ar.id)::numeric / NULLIF(w.target_daily_reports, 0), 2) as target_achievement_ratio,
+    ROW_NUMBER() OVER (ORDER BY COUNT(ar.id) DESC) as rank
+FROM public.users u
+LEFT JOIN public.asha_reports ar ON u.id = ar.worker_id 
+    AND ar.report_date >= CURRENT_DATE - INTERVAL '30 days'
+LEFT JOIN public.wards w ON u.ward_code = w.code
+WHERE u.role = 'ASHA'
+GROUP BY u.id, u.full_name, u.ward_code, w.name, w.target_daily_reports
+ORDER BY reports_30d DESC;
+
+COMMENT ON VIEW public.v_asha_ranking IS 'Ranking of ASHA workers by report submission performance';
+```
+
+---
+
+## ⚙️ **STORED PROCEDURES**
+
+### 1. **update_inventory_after_distribution()** - Update Inventory
+```sql
+CREATE OR REPLACE PROCEDURE public.update_inventory_after_distribution(
+    p_facility_id INTEGER,
+    p_resource_type VARCHAR(50),
+    p_quantity_used INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Update inventory
+    UPDATE public.facility_inventory
+    SET current_stock = current_stock - p_quantity_used,
+        last_updated = NOW()
+    WHERE facility_id = p_facility_id 
+      AND resource_type = p_resource_type;
+    
+    -- Create audit log
+    INSERT INTO public.system_audit_logs (user_id, action_type, description)
+    VALUES (NULL, 'INVENTORY_UPDATE', 
+            format('Updated inventory for facility %s: %s reduced by %s units', 
+                   p_facility_id, p_resource_type, p_quantity_used));
+    
+    RAISE NOTICE 'Inventory updated for facility %, resource %', p_facility_id, p_resource_type;
+END;
+$$;
+
+COMMENT ON PROCEDURE public.update_inventory_after_distribution IS 'Updates inventory levels after resource distribution';
+```
+
+### 2. **generate_daily_summary()** - Generate Daily Summary
+```sql
+CREATE OR REPLACE PROCEDURE public.generate_daily_summary()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Create summary table if not exists
+    CREATE TABLE IF NOT EXISTS public.daily_summary_archive (
+        id SERIAL PRIMARY KEY,
+        report_date DATE,
+        total_reports INTEGER,
+        total_cases INTEGER,
+        active_workers INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    -- Insert yesterday's summary
+    INSERT INTO public.daily_summary_archive (report_date, total_reports, total_cases, active_workers)
+    SELECT 
+        CURRENT_DATE - INTERVAL '1 day',
+        COUNT(*),
+        SUM(fever_count + cough_count + diarrhea_count),
+        COUNT(DISTINCT worker_id)
+    FROM public.asha_reports
+    WHERE report_date = CURRENT_DATE - INTERVAL '1 day';
+    
+    -- Log the operation
+    INSERT INTO public.system_audit_logs (user_id, action_type, description)
+    VALUES (NULL, 'DAILY_SUMMARY', 'Daily summary generated for ' || (CURRENT_DATE - INTERVAL '1 day')::text);
+    
+    RAISE NOTICE 'Daily summary generated for %', CURRENT_DATE - INTERVAL '1 day';
+END;
+$$;
+
+COMMENT ON PROCEDURE public.generate_daily_summary IS 'Generates daily summary of ASHA reports for archival';
+```
+
+### 3. **backup_critical_tables()** - Backup Critical Tables
+```sql
+CREATE OR REPLACE PROCEDURE public.backup_critical_tables()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    backup_table_name TEXT;
+BEGIN
+    -- Backup asha_reports
+    backup_table_name := 'asha_reports_backup_' || TO_CHAR(NOW(), 'YYYYMMDD_HH24MISS');
+    EXECUTE format('CREATE TABLE %I AS SELECT * FROM public.asha_reports', backup_table_name);
+    
+    -- Backup capacity_reports
+    backup_table_name := 'capacity_reports_backup_' || TO_CHAR(NOW(), 'YYYYMMDD_HH24MISS');
+    EXECUTE format('CREATE TABLE %I AS SELECT * FROM public.capacity_reports', backup_table_name);
+    
+    -- Log backup
+    INSERT INTO public.system_audit_logs (user_id, action_type, description)
+    VALUES (NULL, 'DATABASE_BACKUP', format('Created backup tables: %s', backup_table_name));
+    
+    RAISE NOTICE 'Backup completed at %', NOW();
+END;
+$$;
+
+COMMENT ON PROCEDURE public.backup_critical_tables IS 'Creates backup of critical tables for data safety';
+```
+
+---
+
+## 📊 **MATERIALIZED VIEWS**
+
+### mv_dashboard_summary - Dashboard Metrics Cache
+```sql
+CREATE MATERIALIZED VIEW public.mv_dashboard_summary AS
+SELECT 
+    COUNT(DISTINCT worker_id) as total_active_ashas,
+    COUNT(*) as total_reports_30d,
+    SUM(fever_count) as total_fever_cases,
+    SUM(cough_count) as total_cough_cases,
+    SUM(diarrhea_count) as total_diarrhea_cases,
+    COUNT(DISTINCT ward_code) as wards_with_reports,
+    MAX(report_date) as latest_report_date
+FROM public.asha_reports
+WHERE report_date >= CURRENT_DATE - INTERVAL '30 days';
+
+-- Create index for faster refresh
+CREATE INDEX idx_mv_dashboard_summary ON public.mv_dashboard_summary (latest_report_date);
+
+COMMENT ON MATERIALIZED VIEW public.mv_dashboard_summary IS 'Cached dashboard metrics for quick access';
+```
+
+---
+
+## 🚀 **INDEXES SUMMARY**
+
+```sql
+-- All indexes for optimal performance
+
+-- Users
+CREATE INDEX idx_users_role ON public.users (role);
+CREATE INDEX idx_users_ward_code ON public.users (ward_code);
+
+-- ASHA Reports
+CREATE INDEX idx_asha_reports_ward_date ON public.asha_reports (ward_code, report_date);
+CREATE INDEX idx_asha_reports_worker_date ON public.asha_reports (worker_id, report_date);
+CREATE INDEX idx_asha_reports_location ON public.asha_reports (location_lat, location_lng) WHERE location_lat IS NOT NULL;
+CREATE INDEX idx_asha_reports_disease_type ON public.asha_reports (disease_type);
+CREATE INDEX idx_asha_reports_reporting_form ON public.asha_reports (reporting_form);
+
+-- Facilities
+CREATE INDEX idx_facilities_ward_code ON public.facilities (ward_code);
+
+-- Capacity Reports
+CREATE INDEX idx_capacity_reports_facility_date ON public.capacity_reports (facility_id, report_date);
+
+-- Facility Inventory
+CREATE INDEX idx_facility_inventory_facility ON public.facility_inventory (facility_id);
+CREATE INDEX idx_facility_inventory_resource ON public.facility_inventory (resource_type);
+
+-- Alerts
+CREATE INDEX idx_alerts_type_date ON public.alerts (type, generated_at);
+CREATE INDEX idx_alerts_severity_status ON public.alerts (severity, status);
+
+-- Outbreak Events
+CREATE INDEX idx_active_outbreaks ON public.outbreak_events (status) WHERE is_closed = FALSE;
+CREATE INDEX idx_outbreak_events_status ON public.outbreak_events (status, is_closed);
+
+-- Outbreak Predictions
+CREATE INDEX idx_outbreak_predictions_ward_date ON public.outbreak_predictions (ward_code, prediction_date);
+
+-- Resource Demand Forecast
+CREATE INDEX idx_resource_demand_ward_date ON public.resource_demand_forecast (ward_code, forecast_date);
+
+-- Beneficiaries
+CREATE INDEX idx_beneficiaries_ward_code ON public.beneficiaries (ward_code);
+
+-- Family Members
+CREATE INDEX idx_family_members_beneficiary ON public.family_members (beneficiary_id);
+
+-- Inventory Distribution
+CREATE INDEX idx_inventory_distribution_ward_date ON public.inventory_distribution_logs (ward_code, report_date);
+
+-- System Audit Logs
+CREATE INDEX idx_audit_logs_user_id ON public.system_audit_logs (user_id);
+CREATE INDEX idx_audit_logs_created_at ON public.system_audit_logs (created_at);
+CREATE INDEX idx_audit_logs_action_type ON public.system_audit_logs (action_type);
+
+-- Visits
+CREATE INDEX idx_visits_visit_date ON public.visits (visit_date);
+```
+
+---
+
+## 📈 **DATABASE STATISTICS FUNCTION**
+
+```sql
+-- Usage: SELECT * FROM public.get_database_stats();
+```
+
+---
+
+## 📝 **INITIAL DATA SEEDING**
+
+### Sample Data Values
+```sql
+-- Disease Resource Mapping
+INSERT INTO public.disease_resource_mapping (disease, resource_type) VALUES
+('fever', 'Antipyretic'),
+('cough', 'Cough Syrup'),
+('diarrhea', 'ORS'),
+('dengue', 'ORS'),
+('malaria', 'RDT Kit');
+
+-- RTI Configuration
+INSERT INTO public.rti_config (key, value) VALUES
+('pio_name', 'Dr. A. Kulkarni'),
+('pio_designation', 'Chief Medical Officer'),
+('pio_email', 'pio@smc.gov.in'),
+('pio_phone', '0217-1234567'),
+('faa_name', 'Mr. S. Patil'),
+('faa_designation', 'Municipal Commissioner'),
+('faa_email', 'faa@smc.gov.in'),
+('fee_application', '10'),
+('fee_photocopy', '2'),
+('fee_cd', '50'),
+('disclosures', 'Monthly Health Reports|Outbreak Data|Budget Allocations');
+```
+
+---
+
+## 📊 **SCHEMA SUMMARY**
+
+| **Category** | **Count** |
+|-------------|-----------|
+| **Tables** | 23 |
+| **Views** | 11 |
+| **Functions** | 4 |
+| **Stored Procedures** | 3 |
+| **Materialized Views** | 1 |
+| **Indexes** | 22 |
+| **Extensions** | 15 |
+
+---
+
+## 🎯 **KEY FEATURES**
+
+1. **Spatial Data Support** - Full PostGIS integration for geographic analysis
+2. **Real-time Monitoring** - Views for real-time dashboard metrics
+3. **Predictive Analytics** - Tables for AI/ML predictions
+4. **Audit Trail** - Complete system audit logging
+5. **Inventory Management** - Medical resource tracking and forecasting
+6. **Outbreak Detection** - Anomaly detection and outbreak tracking
+7. **Family Health Records** - Comprehensive household health tracking
+8. **Performance Optimization** - Strategic indexes and materialized views
+
+---
+
+## 🔗 **RELATIONSHIP DIAGRAM**
+
+```
+wards (1) ──────┬────── (N) users
+                ├────── (N) asha_reports
+                ├────── (N) facilities
+                ├────── (N) alerts
+                ├────── (N) advisories
+                ├────── (N) outbreak_events
+                ├────── (N) outbreak_predictions
+                ├────── (N) resource_demand_forecast
+                ├────── (N) beneficiaries
+                └────── (N) inventory_distribution_logs
+
+users (1) ──────┬────── (N) asha_reports
+                ├────── (N) device_tokens
+                └────── (N) system_audit_logs
+
+facilities (1) ─┬────── (N) capacity_reports
+                └────── (N) facility_inventory
+
+beneficiaries (1) ─┬────── (N) family_members
+                    └────── (N) children
+
+family_members (1) ────── (N) children
+children (1) ─────┬────── (N) growth_measurements
+                  └────── (N) vaccinations
+```
+
+---
+
+## ✅ **DATABASE READY FOR PRODUCTION**
+
+This complete schema provides:
+- **22 tables** with full relationships
+- **11 analytical views** for dashboards
+- **4 helper functions** for common operations
+- **3 stored procedures** for maintenance
+- **1 materialized view** for fast dashboard access
+- **22 optimized indexes** for performance
+
+The database is now fully normalized, indexed, and ready for production deployment with your Next.js application! 🚀
+</file>
+
+<file path="src/lib/db.ts">
+// lib/db.ts
+import { Pool } from 'pg';
+
+declare global {
+  // eslint-disable-next-line no-var
+  var pgPool: Pool | undefined;
+}
+
+const pool =
+  globalThis.pgPool ??
+  new Pool({
+    user: process.env.POSTGRES_USER ?? process.env.DB_USER ?? 'postgres',
+    host: process.env.POSTGRES_HOST ?? process.env.DB_HOST ?? 'localhost',
+    database: process.env.POSTGRES_DB ?? process.env.DB_NAME ?? 'arogya_smc',
+    password: process.env.POSTGRES_PASSWORD ?? process.env.DB_PASSWORD ?? '123',
+    port: parseInt(process.env.POSTGRES_PORT ?? process.env.DB_PORT ?? '5432', 10),
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+
+if (!globalThis.pgPool) {
+  globalThis.pgPool = pool;
+}
+
+export const query = async (text: string, params?: any[]) => {
+  const start = Date.now();
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log('Executed query', { text, duration, rows: res.rowCount });
+    return res;
+  } catch (err: any) {
+    console.error('Database query error:', err?.message ?? err);
+    throw err;
+  }
+};
+
+export default pool;
+</file>
+
+<file path="src/lib/firebase-admin.ts">
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+
+// Your service account from .env
+const serviceAccount = {
+  type: process.env.FIREBASE_SERVICE_ACCOUNT_TYPE,
+  project_id: process.env.FIREBASE_SERVICE_ACCOUNT_PROJECT_ID,
+  private_key_id: process.env.FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY_ID,
+  private_key: process.env.FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  client_email: process.env.FIREBASE_SERVICE_ACCOUNT_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_SERVICE_ACCOUNT_CLIENT_ID,
+  auth_uri: process.env.FIREBASE_SERVICE_ACCOUNT_AUTH_URI,
+  token_uri: process.env.FIREBASE_SERVICE_ACCOUNT_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.FIREBASE_SERVICE_ACCOUNT_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL,
+  universe_domain: process.env.FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN,
+};
+
+// Initialize Firebase Admin only once
+if (!getApps().length) {
+  initializeApp({
+    credential: cert(serviceAccount as any),
+  });
+}
+
+export const adminAuth = getAuth();
+</file>
+
+<file path="TODO.md">
+# ASHA Backend Implementation TODO
+
+## Phase 1: Critical APIs ✅ High Priority
+
+- [ ] 1.1 Verify DB schema columns exist (disease_type, notes, next_due_date)
+- [x] 1.2 Fix app/api/wards/route.ts - Replace hardcoded with DB query for 26 wards
+- [x] 1.3 Update app/api/asha/reports/route.ts - Add disease_type param/INSERT
+- [x] 1.4 Update app/api/reports/route.ts - Add disease_type param/INSERT  
+- [x] 1.5 Update app/api/beneficiaries/route.ts - Add ?ward_code filter to GET
+
+## Phase 2: Family Management 🟡 Medium Priority
+
+- [x] 2.1 Create app/api/beneficiaries/[id]/route.ts - Full family details with nests
+- [x] 2.2 Create app/api/family-members/route.ts - POST add member/child transaction (fixed pool import)
+
+## Phase 3: Growth & Vaccinations 🟢 Low Priority
+
+- [x] 3.1 Create app/api/growth-measurements/route.ts - POST/GET with notes
+- [x] 3.2 Fix app/api/vaccinations/route.ts - Switch to child_id
+
+## Testing
+- [ ] Test all endpoints with curl/Postman
+- [ ] Verify data in PostgreSQL
+
+**All endpoints implemented! Ready for testing**
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off", // <-- add this line
+    },
+  },
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Explicitly disable Turbopack and use Webpack
+  experimental: {
+    turbo: false, // Disable Turbopack
+  },
+  
+  // Ensure proper handling of external packages
+  serverExternalPackages: ['firebase-admin'],
+  
+  // Webpack configuration (optional - for advanced needs)
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Exclude firebase-admin from client bundles
+      config.externals = [...(config.externals || []), 'firebase-admin'];
+    }
+    return config;
+  },
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "arogya-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.7.0",
+    "next": "16.1.6",
+    "pg": "^8.20.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "@types/pg": "^8.18.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="src/app/globals.css">
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="src/app/page.module.css">
+.page {
+  --background: #fafafa;
+  --foreground: #fff;
+
+  --text-primary: #000;
+  --text-secondary: #666;
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+  --button-secondary-border: #ebebeb;
+
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-sans);
+  background-color: var(--background);
+}
+
+.main {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 800px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: var(--foreground);
+  padding: 120px 60px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 24px;
+}
+
+.intro h1 {
+  max-width: 320px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+.intro p {
+  max-width: 440px;
+  font-size: 18px;
+  line-height: 32px;
+  text-wrap: balance;
+  color: var(--text-secondary);
+}
+
+.intro a {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ctas {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 440px;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.ctas a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 128px;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 500;
+}
+
+a.primary {
+  background: var(--text-primary);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--button-secondary-border);
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 48px 24px;
+  }
+
+  .intro {
+    gap: 16px;
+  }
+
+  .intro h1 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.92px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+
+  .page {
+    --background: #000;
+    --foreground: #000;
+
+    --text-primary: #ededed;
+    --text-secondary: #999;
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+    --button-secondary-border: #1a1a1a;
+  }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Image from "next/image";
+import styles from "./page.module.css";
+
+export default function Home() {
+  return (
+    <div className={styles.page}>
+      <main className={styles.main}>
+        <Image
+          className={styles.logo}
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
+        <div className={styles.intro}>
+          <h1>To get started, edit the page.tsx file.</h1>
+          <p>
+            Looking for a starting point or more instructions? Head over to{" "}
+            <a
+              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Templates
+            </a>{" "}
+            or the{" "}
+            <a
+              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learning
+            </a>{" "}
+            center.
+          </p>
+        </div>
+        <div className={styles.ctas}>
+          <a
+            className={styles.primary}
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className={styles.logo}
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={16}
+              height={16}
+            />
+            Deploy Now
+          </a>
+          <a
+            className={styles.secondary}
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+</files>
