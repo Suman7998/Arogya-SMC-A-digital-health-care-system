@@ -2,7 +2,7 @@
  
 Technical Report  
  
-1. Problem Recap & SMC Context  
+1. # Problem Recap & SMC Context 
  
 Problem Title:  
 Smart Health Monitoring & Decision Support System for Solapur Municipal Corporation 
