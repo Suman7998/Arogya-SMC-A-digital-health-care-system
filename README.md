@@ -1,7 +1,5 @@
  
  
-Technical Report  
- 
 # 1. Problem Recap & SMC Context 
  
 **Problem Title:**  
