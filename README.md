@@ -7,19 +7,19 @@ Technical Report
 **Problem Title:**  
 Smart Health Monitoring & Decision Support System for Solapur Municipal Corporation 
  
-Problem Summary:  
+**Problem Summary:**  
 • Health data across SMC is fragmented across ASHA workers, hospitals, and laboratories 
 • Lack of real-time monitoring and centralized data system 
 • Delayed detection of disease outbreaks 
 • No ward-level actionable health intelligence 
  
-Current Challenges in SMC:  
+**Current Challenges in SMC:** 
 • Disconnected reporting systems and manual data handling 
 • Limited visibility of real-time health conditions at ward level 
 • Slow response to emerging public health risks 
 • Difficulty in identifying high-risk zones and vulnerable populations 
  
-Impact:  
+**Impact:** 
 This results in delayed decision-making, inefficient resource allocation, and increased 
 public health risk 
  
@@ -81,12 +81,12 @@ public health risk
  
  
 # 4. System Architecture Subsystems 
-- Architecture Diagram 
+**- Architecture Diagram**
  
  
  
-Figure 1: Complete Arogya‑SMC System Architecture  – Integrated View of All Subsystems 
-and Data Flows
+**Figure 1: Complete Arogya‑SMC System Architecture  – Integrated View of All Subsystems 
+and Data Flows**
 
 ![Complete Arogya-SMC System Architecture](docs/images/Complete%20Arogya-SMC%20System%20Architecture%20%E2%80%93%20Integrated%20View%20of%20All%20Subsystems%20and%20Data%20Flows.png) 
  
@@ -106,9 +106,9 @@ and Data Flows
  
  
  
-Figure 2: ASHA Field Worker Subsystem –  
+**Figure 2: ASHA Field Worker Subsystem –  
 Offline Data Capture, Synchronization, and Alert 
-Delivery
+Delivery**
 
 ![ASHA Field Worker Subsystem](docs/images/ASHA%20Field%20Worker%20Subsystem%20%E2%80%93%20Offline%20Data%20Capture%2C%20Synchronization%2C%20and%20Alert.png)
  
@@ -160,13 +160,13 @@ handling, ward -level intelligence, and real -time decision support for municipa
 administration. 
  
  
-Figure 3: Citizen Engagement Architecture – 
-Public Access to Real-Time Health Information
+**Figure 3: Citizen Engagement Architecture – 
+Public Access to Real-Time Health Information**
 
 ![Citizen Engagement Architecture](docs/images/Citizen%20Engagement%20Architecture%20%E2%80%93%20Public%20Access%20to%20Real-Time%20Health%20Information.png)
  
  
-Data Flow 
+**Data Flow**
 1. ASHA workers and hospitals enter health-related data 
 2. Data is transmitted to the secure API gateway 
 3. The FHIR standardization layer converts raw input into structured records 
@@ -177,7 +177,7 @@ Data Flow
 ![Data Flow](docs/images/Data%20Flow.png) 
  
  
-User Flow 
+**User Flow**
 • ASHA worker submits field observations from the mobile app 
 • Hospital staff updates capacity and disease-related records 
 • Citizens view advisories, facilities, and alerts 
@@ -196,51 +196,51 @@ User Flow
  
  
  
-Key Components 
-Module 1: Data Ingestion Hub (The Field Sensor) 
+**Key Components** 
+**Module 1:** Data Ingestion Hub (The Field Sensor) 
 This component is implemented primarily within the Flutter mobile application. It is optimized for real-world 
 field conditions and enables efficient, structured data collection. 
 Key Features 
-• S-P-LFormParser 
+**• S-P-LFormParser** 
 Converts standard IDSP (Integrated Disease Surveillance Programme) forms into structured database 
 entries for seamless processing. 
-• GeotaggingModule 
+**• GeotaggingModule** 
 Automatically captures latitude and longitude for every report. This enables identification of micro -clusters at a granular level, such as specific streets or slum areas. 
  
-Module 2: Risk Intelligence Engine (The Brain) 
+**Module 2: Risk Intelligence Engine (The Brain)** 
 Built using Next.js and PostgreSQL, this module transforms raw data into actionable insights for decision -makers. 
 Key Features 
-• RiskScoringAlgorithm 
+**• RiskScoringAlgorithm**
 Utilizes the v_ward_risk_intelligence database view to compute a risk score (0 –100) for each ward 
 based on factors such as case velocity and population density. 
  
-• EpidemiologicalCurveGenerator(Epi-Curve) 
+**• EpidemiologicalCurveGenerator(Epi-Curve)** 
 Automatically generates 7-day and 30-day epidemiological curves, allowing Medical Officers (MO) 
 to determine whether an outbreak is escalating or subsiding. 
  
-Module 3: Infrastructure Registry (The Supply Chain) 
+**Module 3: Infrastructure Registry (The Supply Chain)** 
 This module manages healthcare infrastructure and resource allocation, ensuring that medical supplies align 
 with disease spread. 
 Key Features 
-• InventoryBurn-RateEngine 
+**• InventoryBurn-RateEngine** 
 Implements SQL-based logic to calculate consumption rates. It predicts when essential supplies (e.g., 
 ORS, Paracetamol) will be depleted in each ward. 
  
-• LiveBedTracker 
+**• LiveBedTracker** 
 Provides real-time visibility into ICU and ventilator availability across Primary Health Centers (PHCs) 
 and civil hospitals. 
  
-Module 4: Governance & Push Vault (The Integrity Layer)
+**Module 4: Governance & Push Vault (The Integrity Layer)**
  
  
 This module ensures transparency, accountability, and effective communication with both authorities and 
 citizens. 
 Key Features 
-• SystemAuditLogTracker 
+**• SystemAuditLogTracker** 
 Records all user activities along with IP addresses ( e.g., "MO viewed Ward 14" ). This ensures 
 accountability and supports post-crisis government audits. 
  
-• FCMBroadcastDispatcher 
+**• FCMBroadcastDispatcher** 
 Uses Firebase Cloud Messaging to send targeted alerts. In case of a localized outbreak, only citizens 
 within the affected ward receive critical advisories (e.g., "Red Alert"). 
  
@@ -425,20 +425,20 @@ within the affected ward receive critical advisories (e.g., "Red Alert").
  
 # 7. Prototype Description Workflow: 
  
-1. ASHA Field Surveillance App 
-Purpose: Field-level health data collection with offline-first capability 
+**1. ASHA Field Surveillance App** 
+**Purpose:** Field-level health data collection with offline-first capability 
  
-INPUT 
+**INPUT** 
 • Syndromic data (fever, cough, diarrhea, jaundice, etc.) 
 • Maternal and child risk indicators (high-risk pregnancy, malnutrition) 
 • Environmental observations (stagnant water, sanitation issues) 
 • GPS coordinates (latitude, longitude) 
 • Optional image/photo evidence 
-PROCESSING 
+**PROCESSING** 
 • Local persistence using offline-first architecture (SQLite) 
 • Geolocation tagging for ward-level mapping 
 • Data queued and synced automatically on connectivity restoration 
-OUTPUT 
+**OUTPUT** 
 • Structured reports submitted to backend 
 • Sync status indicators (Pending / Synced / Failed) 
 • Local history and summary viewsFFffg3
@@ -501,17 +501,17 @@ OUTPUT
  
  
  
-2. Hospital Reporting Portal 
-Purpose: Infrastructure and capacity reporting 
-INPUT 
+**2. Hospital Reporting Portal** 
+**Purpose:** Infrastructure and capacity reporting 
+**INPUT** 
 • Bed availability (general, ICU, ventilators) 
 • Oxygen availability and emergency status 
 • Disease case updates and admissions 
 • Resource inventory data 
-PROCESSING 
+**PROCESSING** 
 • Secure API validation (JWT + role-based access) 
 • Data normalization and structured storage 
-OUTPUT 
+**OUTPUT** 
 • Capacity utilization metrics 
 • Resource status indicators 
 • Updated facility-level records
@@ -526,20 +526,20 @@ OUTPUT
  
  
  
-3. Municipal Command Dashboard 
-Purpose: Analytics-driven decision support 
-INPUT 
+**3. Municipal Command Dashboard** 
+**Purpose:** Analytics-driven decision support 
+**INPUT** 
 • Aggregated ASHA field data 
 • Hospital capacity and resource data 
 • Historical time-series records (7-day / 30-day windows) 
 • Ward-level demographic context 
-PROCESSING 
+**PROCESSING** 
 • Data aggregation and spatial grouping 
 • Statistical anomaly detection: 
 Threshold = μ + 2σ   (rolling baseline) 
 • Trend analysis and regression-based forecasting 
 • Risk scoring based on case intensity and trends 
-OUTPUT 
+**OUTPUT** 
 • Ward-level risk visualization 
 • Outbreak alerts and anomaly flags 
 • Trend graphs and decision metrics
@@ -636,16 +636,16 @@ OUTPUT
  
  
  
-4. Citizen Health Access App 
+**4. Citizen Health Access App** 
 Purpose: Public access to health services 
-INPUT 
+**INPUT** 
 • User location (GPS) 
 • User queries (facility search, refresh actions) 
-PROCESSING 
+**PROCESSING** 
 • Ward-level filtering of relevant data 
 • Cached responses for faster access 
 • Notification routing based on location 
-OUTPUT 
+**OUTPUT** 
 • Hospital availability and details 
 • Health advisories and alerts 
 • Emergency service access
@@ -700,25 +700,25 @@ OUTPUT
  
  
 # 9. Innovation Highlights 
-➢ What is new in your solution? 
+**➢ What is new in your solution?** 
  
-• End-to-end data flow (field → system → dashboard) 
+**• End-to-end data flow (field → system → dashboard)** 
 Unlike many existing municipal systems that mainly display aggregated data, this solution 
 captures primary data directly from ASHA workers and hospitals. 
   
-• Offline-first field data collection 
+**• Offline-first field data collection** 
 While most existing platforms depend on continuous internet connectivity, this system allows 
 offline data entry with later synchronization, making it practical for field conditions. 
   
-• Ward-level micro-surveillance 
+**• Ward-level micro-surveillance** 
 Existing dashboards generally provide city-level insights, whereas this system enables fine-
 grained ward-wise monitoring of diseases and risks. 
   
-• Unified multi-stakeholder ecosystem 
+**• Unified multi-stakeholder ecosystem** 
 Unlike separate systems (citizen apps, dashboards, hospital portals), this solution combines 
 ASHA interface, hospital portal, citizen app, and government dashboard into one workflow. 
  
-➢ How is it better than existing approaches? 
+**➢ How is it better than existing approaches?** 
   
 • Systems used during COVID-19 (such as municipal dashboards and smart city control rooms) 
 were primarily visualization tools for already collected data, whereas this solution adds 
@@ -726,16 +726,16 @@ structured data collection at the ground level (ASHA + hospitals).
   
 • Existing approaches follow a top-down model, where data is processed centrally and then shown 
 on dashboards. 
-→ This system follows a bottom-up approach, starting from field data collection and moving 
-upward to decision-making. 
+**→ This system follows a bottom-up approach, starting from field data collection and moving 
+upward to decision-making.** 
   
 • Many existing systems rely on manual or delayed reporting, which can slow down response time. 
-→ This system enables faster and more structured data entry, improving responsiveness. 
+**→ This system enables faster and more structured data entry, improving responsiveness.** 
   
 • Current platforms often lack granular, ward-level intelligence. 
-→ This system supports zone-wise and ward-level insights, enabling targeted interventions. 
+**→ This system supports zone-wise and ward-level insights, enabling targeted interventions.** 
   
-➢ Any AI / data-driven innovation? 
+**➢ Any AI / data-driven innovation?** 
  
 • Basic anomaly detection logic to identify sudden increases in disease cases based on incoming 
 data. 
@@ -749,7 +749,7 @@ municipal authorities.
  
 # 10. Results / Demonstration 
  
-Citizen app – OUTPUT:  
+**Citizen app – OUTPUT:**  
 
 ![Citizen app – OUTPUT 1](docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%201.png)
 ![Citizen app – OUTPUT 2](docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%202.png)
@@ -760,7 +760,9 @@ Lands on Home screen → views health advisory carousel and quick access options
 hospital list with bed availability and contact details. 
 Selects Health Alerts → views important alerts and advisories.  
 Navigates between sections to access required health information. 
-ASHA WORKER APP OUTPUT:
+
+
+**ASHA WORKER APP OUTPUT:**
 
 ![ASHA WORKER APP OUTPUT 1](docs/images/ASHA%20WORKER%20APP%20OUTPUT%201.png)
 ![ASHA WORKER APP OUTPUT 2](docs/images/ASHA%20WORKER%20APP%20OUTPUT%202.png)
@@ -798,26 +800,26 @@ ASHA app receives alerts and displays them
  
 # 11. Reproducibility & Code Access 
  
-Code Access 
+**Code Access 
 The Arogya-SMC system is organized into modular repositories representing different 
 subsystems: 
  
-Core Platform (Backend + Dashboard + Analytics Integration) 
+**Core Platform (Backend + Dashboard + Analytics Integration)** 
 https://github.com/Suman7998/Arogya-SMC-A-digital-health-care-system/tree/main/arogya-smc-platform
  
-ASHA Reporting Backend 
+**ASHA Reporting Backend** 
 https://github.com/Suman7998/Arogya-SMC-A-digital-health-care-system/tree/main/arogya-asha-app-backend
 
-Citizen / Public Backend 
+**Citizen / Public Backend** 
 https://github.com/Suman7998/Arogya-SMC-A-digital-health-care-system/tree/main/arogya-public-app-backend
  
-ASHA Mobile Application 
+**ASHA Mobile Application** 
 https://github.com/Suman7998/Arogya-SMC-A-digital-health-care-system/tree/main/arogya-smc-ASHA-app
  
-Citizen Mobile Application 
+**Citizen Mobile Application** 
 https://github.com/Suman7998/Arogya-SMC-A-digital-health-care-system/tree/main/arogya-smc-public-app
 
-System Requirements 
+**System Requirements** 
 To reproduce the prototype, the following environment stack is required:
  
  
@@ -828,21 +830,21 @@ To reproduce the prototype, the following environment stack is required:
 • Analytics Engine: Python 3.x (pandas, NumPy, scikit-learn) 
 • Other Tools: Firebase (Authentication & Notifications) 
  
-Environment Configuration 
+**Environment Configuration** 
 Before running the system, configure the following environment variables: 
 • JWT_SECRET → authentication token signing 
 • NOTIFICATION_TRIGGER_SECRET → secure alert triggering 
 • FIREBASE_SERVICE_ACCOUNT → Firebase Admin SDK configuration 
 • Database credentials → PostgreSQL connection setup 
  
-Deployment Workflow 
+**Deployment Workflow** 
  
-Step 1: Database Setup 
+**Step 1: Database Setup**
 • Install PostgreSQL and enable PostGIS 
 • Create database and required tables 
 • Load initial schema and seed data 
  
-Step 2: Backend Initialization 
+**Step 2: Backend Initialization** 
 • Navigate to the core platform repository 
 • Install dependencies: 
                           npm install 
@@ -850,7 +852,7 @@ Step 2: Backend Initialization
                          npm run dev 
 This launches API services, dashboards, and core backend modules. 
  
-Step 3: Analytics Engine Execution 
+**Step 3: Analytics Engine Execution** 
 • Navigate to the analytics directory 
 • Install dependencies: 
                        pip install pandas numpy scikit-learn 
@@ -864,7 +866,7 @@ This executes:
  
 • resource demand prediction 
  
-Step 4: Mobile Application Setup 
+**Step 4: Mobile Application Setup** 
 Navigate to Flutter app directory 
 • Install dependencies: 
                                       flutter pub get 
@@ -877,7 +879,7 @@ When testing on a physical device():
 Ensure API base URL points to: 
                                    http://localhost:3001/api 
  
-System Reproducibility 
+**System Reproducibility** 
 The system can be reproduced by following the above steps, enabling: 
 • End-to-end data flow from field input to dashboard 
 • Execution of analytics pipeline on real or simulated data 
@@ -897,7 +899,7 @@ The system can be reproduced by following the above steps, enabling:
  
  
 13. Limitations & Future Scope 
-➢ Current Limitations 
+**➢ Current Limitations** 
 • The system is currently developed as separate modules, and full integration into a single centralized 
 backend is still in progress.  
 • Data is stored in local PostgreSQL databases on individual systems rather than a unified cloud -based 
@@ -910,13 +912,13 @@ model.
 • The data ingestion layer, security mechanisms (JWT/auth), and FHIR-based standardization layer are 
 part of the proposed architecture but are not fully implemented in the current prototype. 
  
-➢ Assumptions Made 
+**➢ Assumptions Made** 
 • It is assumed that ASHA workers and hospitals will regularly update data in the system.  
 • Reliable internet connectivity is assumed during data synchronization (ASHA app sync feature).  
 • The data used in the prototype represents realistic scenarios for demonstration purposes.  
 • It is assumed that citizens and government officials will actively use the system for decision-making. 
  
-➢ Possible Future Improvements 
+**➢ Possible Future Improvements**
 • Integration of all subsystems into a single centralized backend and database for real-time data flow.  
 • Implementation of a secure API gateway with authentication (JWT) and data validation mechanisms.  
 • Deployment of a FHIR-compliant data standardization layer to ensure interoperability with healthcare 
