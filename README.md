@@ -24,7 +24,7 @@ This results in delayed decision-making, inefficient resource allocation, and in
 public health risk 
  
  
-2. Objectives & Implementation Mapping  
+# 2. Objectives & Implementation Mapping  
 
 | Objective | Status | Evidence (Modules / Components) |
 |----------|--------|------------------------------|
@@ -38,7 +38,7 @@ public health risk
  
  
  
-3. Constraints & Handling Mapping  
+# 3. Constraints & Handling Mapping  
 
 | Constraint Type | Handling Approach |
 |----------------|-------------------|
@@ -80,7 +80,7 @@ public health risk
  
  
  
-4. System Architecture Subsystems 
+# 4. System Architecture Subsystems 
 - Architecture Diagram 
  
  
@@ -245,7 +245,7 @@ Uses Firebase Cloud Messaging to send targeted alerts. In case of a localized ou
 within the affected ward receive critical advisories (e.g., "Red Alert"). 
  
  
-<h2>5. Subsystems</h2>
+# <h2>5. Subsystems</h2>
 
 <table>
 <thead>
@@ -396,7 +396,7 @@ within the affected ward receive critical advisories (e.g., "Red Alert").
  
  
  
-6. Subsystem Interaction Matrix 
+# 6. Subsystem Interaction Matrix 
  
 | Subsystem A | Subsystem B | Type of Interaction | Description |
 |-------------|-------------|-------------------|-------------|
@@ -423,7 +423,7 @@ within the affected ward receive critical advisories (e.g., "Red Alert").
  
  
  
-7. Prototype Description Workflow: 
+# 7. Prototype Description Workflow: 
  
 1. ASHA Field Surveillance App 
 Purpose: Field-level health data collection with offline-first capability 
@@ -684,7 +684,7 @@ OUTPUT
  
  
  
-8. Technology Stack & Tools  
+# 8. Technology Stack & Tools  
 
 | Layer | Technology Used (Across all Subsystems) | Justification |
 |-------|----------------------------------------|-------------|
@@ -699,7 +699,7 @@ OUTPUT
  
  
  
-9. Innovation Highlights 
+# 9. Innovation Highlights 
 ➢ What is new in your solution? 
  
 • End-to-end data flow (field → system → dashboard) 
@@ -747,7 +747,7 @@ municipal authorities.
  
  
  
-10. Results / Demonstration 
+# 10. Results / Demonstration 
  
 Citizen app – OUTPUT:  
 
@@ -796,7 +796,7 @@ generates alerts and risk scores → sends alerts to API Gateway → API Gateway
 ASHA app receives alerts and displays them 
 • Metrics (if applicable): accuracy, time, efficiency, etc. 
  
-11. Reproducibility & Code Access 
+# 11. Reproducibility & Code Access 
  
 Code Access 
 The Arogya-SMC system is organized into modular repositories representing different 
@@ -883,7 +883,7 @@ The system can be reproduced by following the above steps, enabling:
 • Execution of analytics pipeline on real or simulated data 
 • Functional demonstration of all major subsystems 
  
-12. SMC Impact Assessment (Proposed) 
+# 12. SMC Impact Assessment (Proposed) 
  
 | Impact Area | Current State | Proposed Improvement | Expected Benefit |
 |-------------|----------------|---------------------|-----------------|
