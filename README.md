@@ -245,28 +245,150 @@ Uses Firebase Cloud Messaging to send targeted alerts. In case of a localized ou
 within the affected ward receive critical advisories (e.g., "Red Alert"). 
  
  
-5. Subsystems  
+<h2>5. Subsystems</h2>
 
-| Subsystem Name | Function (one or more) | Input | Output | Technology Used |
-|----------------|------------------------|-------|--------|-----------------|
-| ASHA Field Surveillance Module | • Collects field-level health data (symptoms, cases, visits)<br>• Captures syndromic indicators (fever, cough, diarrhoea)<br>• Reports maternal & child risk flags<br>• Enables geotagged environmental observations<br>• Receives advisories and alerts from system | Field observations, patient visit data (manual entry) | Syndromic reports to API Gateway; receives advisories/alerts | Mobile App (Flutter), SQLite (offline), HTTPS, JSON, JWT, FCM |
-| Citizen Health Access & Engagement App | • Provides public access to health advisories<br>• Enables facility and bed availability lookup<br>• Displays outbreak alerts and notifications<br>• Supports location-based services (nearest facility)<br>• Delivers push notifications to citizens | User queries (public), app interactions | Public queries to API Gateway; receives advisories, alerts, notifications | Mobile/Web App (Flutter), HTTPS, JSON (no auth), GPS, FCM |
- 
- 
-| Hospital Capacity & Disease Reporting Portal | • Reports hospital capacity (beds, ICU, ventilators, oxygen)<br>• Submits disease admission and occupancy data<br>• Maintains historical logs and audit records<br>• Provides secure role-based access for hospital staff | Capacity reports, disease case data | Capacity reports to API Gateway; receives history/confirmation responses | Web Portal (React, TypeScript), HTTPS, JSON, JWT, RBAC |
-| Municipal Health Command Centre | • Monitors dashboards and ward-level heatmaps<br>• Analyzes epidemiological trends<br>• Tracks alerts and outbreak situations<br>• Supports decision-making and resource planning<br>• Performs drill-down analysis | Dashboard queries, admin requests | Queries to API Gateway; receives aggregated dashboard data (trends, heatmaps, alerts) | Web Dashboard (React, Leaflet, Recharts), HTTPS, JSON, JWT |
-| Secure API Gateway & Ingestion Layer | • Acts as central entry point for all subsystems<br>• Validates JWT and enforces security policies<br>• Routes requests to appropriate services<br>• Handles public and private endpoints<br>• Sends push notifications (FCM)<br>• Logs and manages all requests | All incoming requests from subsystems (reports, queries, alerts) | Sends data to standardization service, DB queries, FCM notifications; dashboard responses | Node.js (Fastify/Express), HTTPS, JSON, JWT, FCM, Redis |
-| FHIR-Compliant Data Standardization Service | • Converts raw health data into FHIR | Raw reports from API Gateway | Standardized FHIR JSON (JSONB) stored in DB | Node.js, FHIR Mapping, JSONB |
- 
- 
-| Observations | • Maps data to SNOMED CT / ICD-11 standards<br>• Ensures interoperability and validation<br>• Enriches data with ward/facility metadata<br>• Normalizes and structures health records processing, HTTP / Message Queue | | | |
-| Centralized Health Data Repository (PostgreSQL/PostGIS) | • Stores standardized health data (observations, capacity)<br>• Maintains ward boundaries and facility registry<br>• Supports geospatial queries (heatmaps)<br>• Enables time-series health analytics<br>• Acts as single source of truth | Standardized FHIR data; query requests from API Gateway | Query results; master data; bulk export for analytics | PostgreSQL, PostGIS, SQL, JSONB |
-| Predictive Analytics & Alert Engine | • Performs data aggregation and anomaly detection<br>• Models outbreak trends (time-series analysis)<br>• Generates threshold-based alerts<br>• Computes risk scores and forecasts<br>• Publishes real-time alerts | Historical data from database | Alerts, aggregated metrics; publishes alerts to API Gateway via queue | Python, Pandas, Prophet, SQL, Redis Queue | 
- 
- 
- 
- 
- 
+<table>
+<thead>
+<tr>
+<th>Subsystem Name</th>
+<th>Function</th>
+<th>Input</th>
+<th>Output</th>
+<th>Technology Used</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td><b>ASHA Field Surveillance Module</b></td>
+<td>
+<ul>
+<li>Collects field-level health data (symptoms, cases, visits)</li>
+<li>Captures syndromic indicators (fever, cough, diarrhoea)</li>
+<li>Reports maternal & child risk flags</li>
+<li>Enables geotagged environmental observations</li>
+<li>Receives advisories and alerts from system</li>
+</ul>
+</td>
+<td>Field observations, patient visit data (manual entry)</td>
+<td>Syndromic reports to API Gateway; receives advisories and alerts</td>
+<td>Flutter, SQLite (Offline), HTTPS, JSON, JWT, Firebase Cloud Messaging (FCM)</td>
+</tr>
+
+<tr>
+<td><b>Citizen Health Access & Engagement App</b></td>
+<td>
+<ul>
+<li>Provides public access to health advisories</li>
+<li>Shows hospital and bed availability</li>
+<li>Displays outbreak alerts</li>
+<li>Location-based facility search</li>
+<li>Push notifications</li>
+</ul>
+</td>
+<td>User queries, app interactions</td>
+<td>Receives advisories, alerts and notifications</td>
+<td>Flutter, HTTPS, JSON, GPS, Firebase Cloud Messaging (FCM)</td>
+</tr>
+
+<tr>
+<td><b>Hospital Capacity & Disease Reporting Portal</b></td>
+<td>
+<ul>
+<li>Reports bed, ICU, ventilator and oxygen capacity</li>
+<li>Submits disease admission records</li>
+<li>Maintains audit logs</li>
+<li>Role-based access for staff</li>
+</ul>
+</td>
+<td>Capacity reports, disease case data</td>
+<td>Capacity confirmation and history</td>
+<td>React, TypeScript, HTTPS, JSON, JWT, RBAC</td>
+</tr>
+
+<tr>
+<td><b>Municipal Health Command Centre</b></td>
+<td>
+<ul>
+<li>Ward dashboards</li>
+<li>Heatmaps</li>
+<li>Trend analysis</li>
+<li>Decision support</li>
+<li>Resource planning</li>
+</ul>
+</td>
+<td>Dashboard queries</td>
+<td>Aggregated trends, alerts and heatmaps</td>
+<td>React, Leaflet, Recharts, HTTPS, JSON, JWT</td>
+</tr>
+
+<tr>
+<td><b>Secure API Gateway & Ingestion Layer</b></td>
+<td>
+<ul>
+<li>Central API Gateway</li>
+<li>JWT validation</li>
+<li>Routes requests</li>
+<li>Push notifications</li>
+<li>Request logging</li>
+</ul>
+</td>
+<td>All subsystem requests</td>
+<td>Database queries, FCM notifications and dashboard responses</td>
+<td>Node.js, Fastify, Express, Redis, HTTPS, JWT</td>
+</tr>
+
+<tr>
+<td><b>FHIR-Compliant Data Standardization Service</b></td>
+<td>
+<ul>
+<li>Converts raw health data into FHIR format</li>
+<li>Maps to SNOMED CT / ICD-11</li>
+<li>Validates records</li>
+<li>Adds ward metadata</li>
+<li>Normalizes health records</li>
+</ul>
+</td>
+<td>Raw reports from API Gateway</td>
+<td>FHIR JSON stored in PostgreSQL</td>
+<td>Node.js, FHIR Mapping, JSONB</td>
+</tr>
+
+<tr>
+<td><b>Centralized Health Data Repository</b></td>
+<td>
+<ul>
+<li>Stores standardized health records</li>
+<li>Maintains ward boundaries</li>
+<li>Supports geospatial queries</li>
+<li>Time-series analytics</li>
+<li>Single source of truth</li>
+</ul>
+</td>
+<td>FHIR data and API queries</td>
+<td>Analytics data, master records and exports</td>
+<td>PostgreSQL, PostGIS, SQL, JSONB</td>
+</tr>
+
+<tr>
+<td><b>Predictive Analytics & Alert Engine</b></td>
+<td>
+<ul>
+<li>Data aggregation</li>
+<li>Anomaly detection</li>
+<li>Outbreak forecasting</li>
+<li>Risk scoring</li>
+<li>Real-time alerts</li>
+</ul>
+</td>
+<td>Historical health data</td>
+<td>Alerts, forecasts and risk metrics</td>
+<td>Python, Pandas, Prophet, SQL, Redis Queue</td>
+</tr>
+
+</tbody>
+</table>
  
  
  
