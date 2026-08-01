@@ -761,9 +761,21 @@ municipal authorities.
  
 **Citizen app – OUTPUT:**  
 
-![Citizen app – OUTPUT 1](docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%201.png)
-![Citizen app – OUTPUT 2](docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%202.png)
-![Citizen app – OUTPUT 3](docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%203.png)
+<table align="center">
+<tr>
+<td align="center" width="33%">
+<img src="docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%201.png" width="220"/>
+</td>
+
+<td align="center" width="33%">
+<img src="docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%202.png" width="220"/>
+</td>
+
+<td align="center" width="33%">
+<img src="docs/images/Citizen%20app%20%E2%80%93%20OUTPUT%203.png" width="220"/>
+</td>
+</tr>
+</table>
 
 User opens app → Splash screen → clicks Get Started. 
 Lands on Home screen → views health advisory carousel and quick access options Selects Hospitals → views 
@@ -774,12 +786,31 @@ Navigates between sections to access required health information.
 
 **ASHA WORKER APP OUTPUT:**
 
-![ASHA WORKER APP OUTPUT 1](docs/images/ASHA%20WORKER%20APP%20OUTPUT%201.png)
-![ASHA WORKER APP OUTPUT 2](docs/images/ASHA%20WORKER%20APP%20OUTPUT%202.png)
-![ASHA WORKER APP OUTPUT 3](docs/images/ASHA%20WORKER%20APP%20OUTPUT%203.png)
-![ASHA WORKER APP OUTPUT 4](docs/images/ASHA%20WORKER%20APP%20OUTPUT%204.png)
-![ASHA WORKER APP OUTPUT 5](docs/images/ASHA%20WORKER%20APP%20OUTPUT%205.png)
-![ASHA WORKER APP OUTPUT 6](docs/images/ASHA%20WORKER%20APP%20OUTPUT%206.png) 
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%201.png" width="220"/>
+    </td>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%202.png" width="220"/>
+    </td>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%203.png" width="220"/>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%204.png" width="220"/>
+    </td>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%205.png" width="220"/>
+    </td>
+    <td align="center">
+      <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%206.png" width="220"/>
+    </td>
+  </tr>
+</table>
  
  
  
