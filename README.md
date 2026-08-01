@@ -799,6 +799,8 @@ Navigates between sections to access required health information.
     </td>
   </tr>
 
+  <tr><td colspan="3" height="20"></td></tr>
+
   <tr>
     <td align="center">
       <img src="docs/images/ASHA%20WORKER%20APP%20OUTPUT%204.png" width="220"/>
