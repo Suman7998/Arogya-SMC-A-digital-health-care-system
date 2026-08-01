@@ -941,7 +941,7 @@ The system can be reproduced by following the above steps, enabling:
  
  
  
-13. Limitations & Future Scope 
+# 13. Limitations & Future Scope 
 **➢ Current Limitations** 
 • The system is currently developed as separate modules, and full integration into a single centralized 
 backend is still in progress.  
