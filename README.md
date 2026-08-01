@@ -443,10 +443,11 @@ within the affected ward receive critical advisories (e.g., "Red Alert").
 • Sync status indicators (Pending / Synced / Failed) 
 • Local history and summary viewsFFffg3
 
-![ASHA Field Surveillance App 1](docs/images/ASHA%20Field%20Surveillance%20App%201.png)
-![ASHA Field Surveillance App 2](docs/images/ASHA%20Field%20Surveillance%20App%202.png)
-![ASHA Field Surveillance App 3](docs/images/ASHA%20Field%20Surveillance%20App%203.png) 
- 
+<p align="center">
+  <img src="docs/images/ASHA%20Field%20Surveillance%20App%201.png" width="30%" />
+  <img src="docs/images/ASHA%20Field%20Surveillance%20App%202.png" width="30%" />
+  <img src="docs/images/ASHA%20Field%20Surveillance%20App%203.png" width="30%" />
+</p>
  
  
  
